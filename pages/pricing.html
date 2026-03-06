@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>토큰 정책 — Multi-Agent Studio</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/pricing.css">
+</head>
+<body>
+
+<!-- 모바일 햄버거 메뉴 -->
+<button class="hamburger" id="hamburger-btn" aria-label="메뉴 열기">☰</button>
+
+<!-- 사이드바 -->
+<aside class="sidebar" id="sidebar" role="navigation" aria-label="주 내비게이션"></aside>
+
+<main class="main" role="main">
+
+  <!-- 페이지 헤더 -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">토큰 <span>정책</span></h1>
+      <p class="page-subtitle">크레딧 기반 과금 구조 · 플랜 설계 · API 비용 역산</p>
+    </div>
+    <div class="header-actions">
+      <a href="../index.html" class="btn btn-primary" aria-label="파이프라인으로 이동">
+        ▶ 파이프라인
+      </a>
+    </div>
+  </div>
+
+  <div class="pricing-sections">
+
+    <!-- ───────────────────────────────────────
+         섹션 1: 과금 기준 단위 — 크레딧
+    ─────────────────────────────────────────── -->
+    <div class="pricing-section">
+      <div class="pricing-section-num">Section 01</div>
+      <div class="pricing-section-title">과금 기준 단위 — 크레딧</div>
+      <div class="pricing-section-sub">
+        API 토큰을 사용자에게 직접 노출하지 않고 "크레딧" 단위로 추상화합니다
+      </div>
+
+      <div class="credit-formula">
+        <div class="credit-formula-item">
+          <div class="credit-formula-value">1</div>
+          <div class="credit-formula-label">크레딧</div>
+        </div>
+        <div class="credit-formula-op">=</div>
+        <div class="credit-formula-item">
+          <div class="credit-formula-value">1,000</div>
+          <div class="credit-formula-label">토큰</div>
+        </div>
+        <div class="credit-formula-op">→</div>
+        <div class="credit-formula-item">
+          <div class="credit-formula-value" style="color:var(--accent-dev)">Math.ceil(tokens / 1000)</div>
+          <div class="credit-formula-label">올림 처리로 수익성 확보</div>
+        </div>
+      </div>
+
+      <div class="credit-info-grid">
+        <div class="credit-info-card">
+          <div class="credit-info-card-label">파이프라인 1회 실행</div>
+          <div class="credit-info-card-value" style="color:var(--accent-pipe)">15 크레딧</div>
+          <div class="credit-info-card-desc">PM·Designer·Dev·QA 4단계 합산</div>
+        </div>
+        <div class="credit-info-card">
+          <div class="credit-info-card-label">토큰 추정 공식</div>
+          <div class="credit-info-card-value" style="color:var(--accent-design)">글자 수 ÷ 4</div>
+          <div class="credit-info-card-desc">영문 기준 근사값, 한국어는 ÷ 2~3</div>
+        </div>
+        <div class="credit-info-card">
+          <div class="credit-info-card-label">크레딧 단가 (Pro 기준)</div>
+          <div class="credit-info-card-value" style="color:var(--accent-qa)">₩20 / 크레딧</div>
+          <div class="credit-info-card-desc">₩99,000 / 5,000 크레딧</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────────────────────────────────────
+         섹션 2: 플랜 구조
+    ─────────────────────────────────────────── -->
+    <div class="pricing-section">
+      <div class="pricing-section-num">Section 02</div>
+      <div class="pricing-section-title">플랜 구조 (SaaS 표준)</div>
+      <div class="pricing-section-sub">
+        플랜을 클릭하면 상세 내용을 확인할 수 있습니다
+      </div>
+
+      <!-- 플랜 선택 탭 -->
+      <div class="plan-grid" id="plan-tabs">
+        <div class="plan-card" data-plan="free" role="button" tabindex="0" aria-label="Free 플랜 선택">
+          <div class="plan-name">Free</div>
+          <div class="plan-price">₩0 <span>/ 월</span></div>
+          <div class="plan-credits">100 크레딧</div>
+          <div class="plan-runs">약 6~7회 실행</div>
+        </div>
+        <div class="plan-card" data-plan="starter" role="button" tabindex="0" aria-label="Starter 플랜 선택">
+          <div class="plan-name">Starter</div>
+          <div class="plan-price">₩29,000 <span>/ 월</span></div>
+          <div class="plan-credits">1,000 크레딧</div>
+          <div class="plan-runs">약 65회 실행</div>
+        </div>
+        <div class="plan-card featured" data-plan="pro" role="button" tabindex="0" aria-label="Pro 플랜 선택">
+          <div class="plan-name">Pro</div>
+          <div class="plan-price">₩99,000 <span>/ 월</span></div>
+          <div class="plan-credits" style="color:var(--accent-pipe)">5,000 크레딧</div>
+          <div class="plan-runs">약 330회 실행</div>
+        </div>
+        <div class="plan-card" data-plan="team" role="button" tabindex="0" aria-label="Team 플랜 선택">
+          <div class="plan-name">Team</div>
+          <div class="plan-price">₩299,000 <span>/ 월</span></div>
+          <div class="plan-credits">20,000 크레딧</div>
+          <div class="plan-runs">약 1,300회 실행</div>
+        </div>
+      </div>
+
+      <!-- 플랜 상세 패널 -->
+      <div class="plan-detail-panel" id="plan-detail-panel" aria-live="polite">
+        <!-- JS가 동적 생성 -->
+      </div>
+    </div>
+
+    <!-- ───────────────────────────────────────
+         섹션 3: 직급별 토큰 제한 전략
+    ─────────────────────────────────────────── -->
+    <div class="pricing-section">
+      <div class="pricing-section-num">Section 03</div>
+      <div class="pricing-section-title">직급별 토큰 제한 활용 전략</div>
+      <div class="pricing-section-sub">
+        에이전트 직급이 높을수록 토큰 한도·모델 품질·크레딧 소비가 증가 → 자연스러운 업셀링 유도
+      </div>
+
+      <table class="rank-table">
+        <thead>
+          <tr>
+            <th>직급</th>
+            <th>토큰 한도</th>
+            <th>소비 크레딧</th>
+            <th>권장 모델</th>
+            <th>적합한 플랜</th>
+            <th>사용량 비중</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <div class="rank-icon-cell">
+                <span>🔰</span>
+                <span>인턴</span>
+              </div>
+            </td>
+            <td>500 토큰</td>
+            <td>
+              <span class="rank-credit-badge" style="background:rgba(59,130,246,0.1);color:var(--accent-qa)">1 크레딧</span>
+            </td>
+            <td><span class="rank-model-tag">claude-haiku-4-5</span></td>
+            <td style="color:var(--text-muted)">Free</td>
+            <td>
+              <div class="rank-bar-wrap">
+                <div class="rank-bar">
+                  <div class="rank-bar-fill" style="width:6%;background:var(--accent-qa)"></div>
+                </div>
+                <span style="font-size:10px;color:var(--text-muted)">6%</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="rank-icon-cell">
+                <span>🌱</span>
+                <span>신입사원</span>
+              </div>
+            </td>
+            <td>1,000 토큰</td>
+            <td>
+              <span class="rank-credit-badge" style="background:rgba(74,222,128,0.1);color:var(--accent-dev)">1 크레딧</span>
+            </td>
+            <td><span class="rank-model-tag">claude-haiku-4-5</span></td>
+            <td style="color:var(--text-muted)">Free</td>
+            <td>
+              <div class="rank-bar-wrap">
+                <div class="rank-bar">
+                  <div class="rank-bar-fill" style="width:12%;background:var(--accent-dev)"></div>
+                </div>
+                <span style="font-size:10px;color:var(--text-muted)">12%</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="rank-icon-cell">
+                <span>🖥</span>
+                <span>대리</span>
+              </div>
+            </td>
+            <td>2,000 토큰</td>
+            <td>
+              <span class="rank-credit-badge" style="background:rgba(167,139,250,0.1);color:var(--accent-design)">2 크레딧</span>
+            </td>
+            <td><span class="rank-model-tag">claude-haiku-4-5</span></td>
+            <td style="color:var(--text-muted)">Free / Starter</td>
+            <td>
+              <div class="rank-bar-wrap">
+                <div class="rank-bar">
+                  <div class="rank-bar-fill" style="width:25%;background:var(--accent-design)"></div>
+                </div>
+                <span style="font-size:10px;color:var(--text-muted)">25%</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="rank-icon-cell">
+                <span>⭐</span>
+                <span>과장</span>
+              </div>
+            </td>
+            <td>4,000 토큰</td>
+            <td>
+              <span class="rank-credit-badge" style="background:rgba(245,166,35,0.1);color:var(--accent-pm)">4 크레딧</span>
+            </td>
+            <td><span class="rank-model-tag">claude-sonnet-4-6</span></td>
+            <td style="color:var(--text-muted)">Starter / Pro</td>
+            <td>
+              <div class="rank-bar-wrap">
+                <div class="rank-bar">
+                  <div class="rank-bar-fill" style="width:50%;background:var(--accent-pm)"></div>
+                </div>
+                <span style="font-size:10px;color:var(--text-muted)">50%</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="rank-icon-cell">
+                <span>👑</span>
+                <span>팀장</span>
+              </div>
+            </td>
+            <td>8,000 토큰</td>
+            <td>
+              <span class="rank-credit-badge" style="background:rgba(251,113,133,0.1);color:var(--accent-pipe)">8 크레딧</span>
+            </td>
+            <td><span class="rank-model-tag">claude-sonnet-4-6</span></td>
+            <td style="color:var(--text-muted)">Pro</td>
+            <td>
+              <div class="rank-bar-wrap">
+                <div class="rank-bar">
+                  <div class="rank-bar-fill" style="width:100%;background:var(--accent-pipe)"></div>
+                </div>
+                <span style="font-size:10px;color:var(--text-muted)">100%</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="rank-icon-cell">
+                <span>🏆</span>
+                <span>부장</span>
+              </div>
+            </td>
+            <td>무제한</td>
+            <td>
+              <span class="rank-credit-badge" style="background:rgba(251,113,133,0.15);color:var(--accent-pipe);border:1px solid var(--accent-pipe)">10+ 크레딧</span>
+            </td>
+            <td><span class="rank-model-tag">claude-opus-4-6</span></td>
+            <td style="color:var(--accent-pipe);font-weight:700">Team</td>
+            <td style="color:var(--text-muted);font-size:10px">응답 품질 최고</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ───────────────────────────────────────
+         섹션 4: Claude API 비용 역산
+    ─────────────────────────────────────────── -->
+    <div class="pricing-section">
+      <div class="pricing-section-num">Section 04</div>
+      <div class="pricing-section-title">실제 Claude API 비용 역산</div>
+      <div class="pricing-section-sub">
+        Anthropic 공식 요금 기준 · Haiku 4.5 모델 기준 파이프라인 1회 원가 계산
+      </div>
+
+      <div class="cost-layout">
+
+        <!-- API 단가 -->
+        <div class="cost-block">
+          <div class="cost-block-title">Claude Haiku 4.5 API 단가</div>
+          <div class="cost-row">
+            <span class="cost-row-key">입력 토큰</span>
+            <span class="cost-row-val">$0.80 / 1M 토큰</span>
+          </div>
+          <div class="cost-row">
+            <span class="cost-row-key">출력 토큰</span>
+            <span class="cost-row-val">$4.00 / 1M 토큰</span>
+          </div>
+          <div class="cost-row">
+            <span class="cost-row-key">환율 (기준)</span>
+            <span class="cost-row-val">$1 = ₩1,380</span>
+          </div>
+        </div>
+
+        <!-- 파이프라인 1회 원가 -->
+        <div class="cost-block">
+          <div class="cost-block-title">파이프라인 1회 실행 원가 (Haiku 기준)</div>
+          <div class="cost-row">
+            <span class="cost-row-key">입력 ~8,000 토큰</span>
+            <span class="cost-row-val">$0.0064 (약 ₩9)</span>
+          </div>
+          <div class="cost-row">
+            <span class="cost-row-key">출력 ~6,000 토큰</span>
+            <span class="cost-row-val">$0.024 (약 ₩33)</span>
+          </div>
+          <div class="cost-row total">
+            <span class="cost-row-key">1회 총 원가</span>
+            <span class="cost-row-val">≈ ₩42</span>
+          </div>
+        </div>
+
+        <!-- Starter 플랜 수익성 -->
+        <div class="cost-block">
+          <div class="cost-block-title">Starter 플랜 수익성 분석</div>
+          <div class="cost-row">
+            <span class="cost-row-key">월 요금</span>
+            <span class="cost-row-val">₩29,000</span>
+          </div>
+          <div class="cost-row">
+            <span class="cost-row-key">제공 크레딧</span>
+            <span class="cost-row-val">1,000 크레딧</span>
+          </div>
+          <div class="cost-row">
+            <span class="cost-row-key">최대 실행 횟수</span>
+            <span class="cost-row-val">약 65회</span>
+          </div>
+          <div class="cost-row">
+            <span class="cost-row-key">API 원가 (65회)</span>
+            <span class="cost-row-val">65 × ₩42 = ₩2,730</span>
+          </div>
+          <div class="cost-row total">
+            <span class="cost-row-key">마진</span>
+            <span class="cost-row-val">₩26,270 (90.6%)</span>
+          </div>
+        </div>
+
+        <!-- Pro 플랜 수익성 -->
+        <div class="cost-block">
+          <div class="cost-block-title">Pro 플랜 수익성 분석</div>
+          <div class="cost-row">
+            <span class="cost-row-key">월 요금</span>
+            <span class="cost-row-val">₩99,000</span>
+          </div>
+          <div class="cost-row">
+            <span class="cost-row-key">제공 크레딧</span>
+            <span class="cost-row-val">5,000 크레딧</span>
+          </div>
+          <div class="cost-row">
+            <span class="cost-row-key">최대 실행 횟수</span>
+            <span class="cost-row-val">약 330회</span>
+          </div>
+          <div class="cost-row">
+            <span class="cost-row-key">API 원가 (330회)</span>
+            <span class="cost-row-val">330 × ₩42 = ₩13,860</span>
+          </div>
+          <div class="cost-row total">
+            <span class="cost-row-key">마진</span>
+            <span class="cost-row-val">₩85,140 (86.0%)</span>
+          </div>
+        </div>
+
+        <!-- 마진 요약 하이라이트 -->
+        <div class="margin-highlight">
+          <div class="margin-stat">
+            <div class="margin-stat-value">86~91%</div>
+            <div class="margin-stat-label">평균 마진율</div>
+          </div>
+          <div class="margin-divider"></div>
+          <div class="margin-stat">
+            <div class="margin-stat-value">₩42</div>
+            <div class="margin-stat-label">1회 실행 원가</div>
+          </div>
+          <div class="margin-divider"></div>
+          <div class="margin-stat">
+            <div class="margin-stat-value">SaaS</div>
+            <div class="margin-stat-label">확장 비용 ≒ 0</div>
+          </div>
+          <div class="margin-divider"></div>
+          <div style="flex:1">
+            <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);line-height:1.7">
+              API 호출 비용만 변동비로 발생하며<br>
+              사용자 수 증가 시 고정비 비중이 낮아져<br>
+              <span style="color:var(--accent-dev)">스케일업 시 마진율이 추가 개선됩니다</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /pricing-sections -->
+
+</main>
+
+<script src="../js/store.js"></script>
+<script src="../js/app.js"></script>
+
+<script>
+'use strict';
+
+/* ─── 플랜 데이터 ─── */
+const PLANS = {
+  free: {
+    id: 'free',
+    name: 'Free',
+    price: '₩0',
+    accentColor: 'var(--accent-qa)',
+    credits: 100,
+    runs: '6~7회',
+    ranks: ['인턴 🔰', '신입사원 🌱'],
+    model: 'claude-haiku-4-5',
+    historyLimit: '최근 10건',
+    features: [
+      { label: '전체 에이전트 파이프라인 실행', included: true },
+      { label: '아웃풋 뷰어 + 개별 다운로드', included: true },
+      { label: '프롬프트 편집 및 변수 삽입', included: true },
+      { label: '크레딧 만료 없음', included: true },
+      { label: '실행 히스토리 무제한', included: false },
+      { label: 'ZIP 일괄 다운로드', included: false },
+      { label: '고직급 에이전트 (과장 이상)', included: false },
+      { label: 'Claude Sonnet 모델 사용', included: false },
+      { label: '팀 멤버 초대', included: false },
+    ],
+    creditBreakdown: [
+      { label: 'PM (신입사원)', credits: 1, pct: 10 },
+      { label: 'Designer (인턴)', credits: 1, pct: 10 },
+      { label: 'Dev (인턴)', credits: 1, pct: 10 },
+      { label: 'QA (신입사원)', credits: 1, pct: 10 },
+    ],
+    note: '체험·개인 프로젝트에 적합합니다',
+  },
+  starter: {
+    id: 'starter',
+    name: 'Starter',
+    price: '₩29,000',
+    accentColor: 'var(--accent-dev)',
+    credits: 1000,
+    runs: '약 65회',
+    ranks: ['인턴 🔰', '신입사원 🌱', '대리 🖥'],
+    model: 'claude-haiku-4-5',
+    historyLimit: '무제한',
+    features: [
+      { label: '전체 에이전트 파이프라인 실행', included: true },
+      { label: '아웃풋 뷰어 + 개별 다운로드', included: true },
+      { label: '프롬프트 편집 및 변수 삽입', included: true },
+      { label: '크레딧 만료 없음', included: true },
+      { label: '실행 히스토리 무제한', included: true },
+      { label: 'ZIP 일괄 다운로드', included: true },
+      { label: '고직급 에이전트 (과장 이상)', included: false },
+      { label: 'Claude Sonnet 모델 사용', included: false },
+      { label: '팀 멤버 초대', included: false },
+    ],
+    creditBreakdown: [
+      { label: 'PM (대리)', credits: 2, pct: 25 },
+      { label: 'Designer (대리)', credits: 2, pct: 25 },
+      { label: 'Dev (신입사원)', credits: 1, pct: 13 },
+      { label: 'QA (대리)', credits: 2, pct: 25 },
+    ],
+    note: '소규모 프로젝트·스타트업 초기 단계에 적합합니다',
+  },
+  pro: {
+    id: 'pro',
+    name: 'Pro',
+    price: '₩99,000',
+    accentColor: 'var(--accent-pipe)',
+    credits: 5000,
+    runs: '약 330회',
+    ranks: ['인턴 🔰', '신입사원 🌱', '대리 🖥', '과장 ⭐', '팀장 👑'],
+    model: 'claude-sonnet-4-6',
+    historyLimit: '무제한',
+    features: [
+      { label: '전체 에이전트 파이프라인 실행', included: true },
+      { label: '아웃풋 뷰어 + 개별 다운로드', included: true },
+      { label: '프롬프트 편집 및 변수 삽입', included: true },
+      { label: '크레딧 만료 없음', included: true },
+      { label: '실행 히스토리 무제한', included: true },
+      { label: 'ZIP 일괄 다운로드', included: true },
+      { label: '고직급 에이전트 (과장·팀장)', included: true },
+      { label: 'Claude Sonnet 모델 사용', included: true },
+      { label: '팀 멤버 초대', included: false },
+    ],
+    creditBreakdown: [
+      { label: 'PM (과장)', credits: 4, pct: 50 },
+      { label: 'Designer (대리)', credits: 2, pct: 25 },
+      { label: 'Dev (신입사원)', credits: 1, pct: 13 },
+      { label: 'QA (팀장)', credits: 8, pct: 100 },
+    ],
+    note: '정기 서비스·MVP 개발 팀에 가장 추천합니다',
+  },
+  team: {
+    id: 'team',
+    name: 'Team',
+    price: '₩299,000',
+    accentColor: 'var(--accent-design)',
+    credits: 20000,
+    runs: '약 1,300회',
+    ranks: ['인턴 🔰', '신입사원 🌱', '대리 🖥', '과장 ⭐', '팀장 👑', '부장 🏆 (무제한)'],
+    model: 'claude-opus-4-6',
+    historyLimit: '무제한',
+    features: [
+      { label: '전체 에이전트 파이프라인 실행', included: true },
+      { label: '아웃풋 뷰어 + 개별 다운로드', included: true },
+      { label: '프롬프트 편집 및 변수 삽입', included: true },
+      { label: '크레딧 만료 없음', included: true },
+      { label: '실행 히스토리 무제한', included: true },
+      { label: 'ZIP 일괄 다운로드', included: true },
+      { label: '모든 직급 에이전트 사용 (부장 포함)', included: true },
+      { label: 'Claude Opus 모델 사용', included: true },
+      { label: '팀 멤버 최대 5명 초대', included: true },
+    ],
+    creditBreakdown: [
+      { label: 'PM (부장)', credits: 10, pct: 100 },
+      { label: 'Designer (팀장)', credits: 8, pct: 80 },
+      { label: 'Dev (과장)', credits: 4, pct: 40 },
+      { label: 'QA (부장)', credits: 10, pct: 100 },
+    ],
+    note: '에이전시·성장 단계 스타트업·엔터프라이즈에 적합합니다',
+  },
+};
+
+/* ─── 패널 렌더링 ─── */
+const renderPlanDetail = (planId) => {
+  const plan = PLANS[planId];
+  const panel = document.getElementById('plan-detail-panel');
+  if (!plan || !panel) return;
+
+  const featuresHTML = plan.features.map(f => `
+    <div class="plan-detail-feature ${f.included ? 'included' : 'excluded'}">
+      <span class="plan-detail-feature-icon">${f.included ? '✓' : '✕'}</span>
+      <span>${f.label}</span>
+    </div>
+  `).join('');
+
+  const ranksHTML = plan.ranks.map(r => `
+    <span class="plan-detail-rank-badge">${r}</span>
+  `).join('');
+
+  const breakdownHTML = plan.creditBreakdown.map(b => `
+    <div class="plan-detail-breakdown-row">
+      <span class="plan-detail-breakdown-label">${b.label}</span>
+      <div class="plan-detail-breakdown-bar">
+        <div class="plan-detail-breakdown-fill" style="width:${b.pct}%;background:${plan.accentColor}"></div>
+      </div>
+      <span class="plan-detail-breakdown-val" style="color:${plan.accentColor}">${b.credits} 크레딧</span>
+    </div>
+  `).join('');
+
+  panel.innerHTML = `
+    <div class="plan-detail-inner" style="--plan-accent:${plan.accentColor}">
+      <div class="plan-detail-top">
+        <div>
+          <div class="plan-detail-name" style="color:${plan.accentColor}">${plan.name} 플랜</div>
+          <div class="plan-detail-note">${plan.note}</div>
+        </div>
+        <div class="plan-detail-summary">
+          <div class="plan-detail-stat">
+            <div class="plan-detail-stat-val" style="color:${plan.accentColor}">${plan.credits.toLocaleString()}</div>
+            <div class="plan-detail-stat-label">크레딧 / 월</div>
+          </div>
+          <div class="plan-detail-stat-divider"></div>
+          <div class="plan-detail-stat">
+            <div class="plan-detail-stat-val" style="color:${plan.accentColor}">${plan.runs}</div>
+            <div class="plan-detail-stat-label">파이프라인 실행</div>
+          </div>
+          <div class="plan-detail-stat-divider"></div>
+          <div class="plan-detail-stat">
+            <div class="plan-detail-stat-val" style="color:${plan.accentColor};font-size:13px">${plan.model}</div>
+            <div class="plan-detail-stat-label">기본 모델</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="plan-detail-body">
+        <!-- 기능 목록 -->
+        <div class="plan-detail-block">
+          <div class="plan-detail-block-title">포함 기능</div>
+          <div class="plan-detail-features">${featuresHTML}</div>
+        </div>
+
+        <!-- 사용 가능 직급 -->
+        <div class="plan-detail-block">
+          <div class="plan-detail-block-title">사용 가능 직급</div>
+          <div class="plan-detail-ranks">${ranksHTML}</div>
+
+          <!-- 크레딧 소비 분석 -->
+          <div class="plan-detail-block-title" style="margin-top:16px">1회 실행 크레딧 소비</div>
+          <div class="plan-detail-breakdown">${breakdownHTML}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  /* 진입 애니메이션 */
+  requestAnimationFrame(() => panel.classList.add('visible'));
+};
+
+/* ─── 탭 클릭 이벤트 ─── */
+document.addEventListener('DOMContentLoaded', () => {
+  const tabs = document.querySelectorAll('#plan-tabs .plan-card');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => selectPlan(tab.dataset.plan));
+    tab.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') selectPlan(tab.dataset.plan);
+    });
+  });
+
+  /* 기본 선택: Pro */
+  selectPlan('pro');
+});
+
+const selectPlan = (planId) => {
+  /* 탭 active 상태 */
+  document.querySelectorAll('#plan-tabs .plan-card').forEach(t => {
+    t.classList.toggle('plan-tab-active', t.dataset.plan === planId);
+  });
+
+  /* 패널 렌더링 */
+  const panel = document.getElementById('plan-detail-panel');
+  panel.classList.remove('visible');
+  setTimeout(() => renderPlanDetail(planId), 80);
+};
+</script>
+
+</body>
+</html>
