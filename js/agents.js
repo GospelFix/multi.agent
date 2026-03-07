@@ -57,20 +57,163 @@ const RANK_OPTIONS = [
   { value: 'director',   label: '부장',     icon: '🏆', tokenLimit: null,  colorVar: '--accent-pipe' },
 ];
 
+/* ─── 에이전시 유형 목록 ─── */
+const AGENCY_OPTIONS = [
+  {
+    file:    'agents.json',
+    label:   '기본 파이프라인',
+    icon:    '⚡',
+    desc:    '전략가·카피라이터·아트디렉터·콘텐츠 플래너',
+    color:   'var(--accent-pipe)',
+    glow:    'rgba(225, 29, 72, 0.08)',
+  },
+  {
+    file:    'marketing-agents.json',
+    label:   '마케팅회사',
+    icon:    '🎯',
+    desc:    'STRATEGIST · COPYWRITER · MEDIA PLANNER · ANALYST',
+    color:   'var(--accent-pm)',
+    glow:    'var(--glow-pm)',
+  },
+  {
+    file:    'design-agents.json',
+    label:   '디자인 에이전시',
+    icon:    '🎨',
+    desc:    'CREATIVE DIR · BRAND DESIGNER · UX · UI · MOTION',
+    color:   'var(--accent-design)',
+    glow:    'var(--glow-design)',
+  },
+  {
+    file:    'dev-agents.json',
+    label:   'SI 에이전시',
+    icon:    '🏗',
+    desc:    'PM · UI DESIGNER · BACKEND DEV · FRONTEND DEV · QA',
+    color:   'var(--accent-dev)',
+    glow:    'var(--glow-dev)',
+  },
+];
+
+/* ─── URL 파라미터에서 에이전시 파일명 읽기 (없으면 Store에서) ─── */
+const URL_PARAMS  = new URLSearchParams(window.location.search);
+let   AGENTS_FILE = URL_PARAMS.get('agents') || Store.get().selectedAgency || 'agents.json';
+
+/* 에이전시 유형별 메타 정보 (제목·서브타이틀·돌아가기 링크) */
+const AGENCY_META = {
+  'agents.json':           {
+    title:    '마케팅 파이프라인',
+    subtitle: '전략가·카피라이터·아트디렉터·콘텐츠 플래너의 AI 모델과 직급을 조정합니다',
+    back:     '../index.html',
+    backLabel: '← 파이프라인',
+  },
+  'marketing-agents.json': {
+    title:    '마케팅회사',
+    subtitle: 'STRATEGIST·COPYWRITER·MEDIA PLANNER·ANALYST의 AI 모델과 직급을 조정합니다',
+    back:     './marketing-agency.html',
+    backLabel: '← 마케팅회사',
+  },
+  'design-agents.json':    {
+    title:    '디자인 에이전시',
+    subtitle: 'CREATIVE DIR·BRAND DESIGNER·UX·UI DESIGNER·MOTION DESIGNER의 AI 모델과 직급을 조정합니다',
+    back:     './design-agency.html',
+    backLabel: '← 디자인 에이전시',
+  },
+  'dev-agents.json':       {
+    title:    'SI 에이전시',
+    subtitle: 'PM·UI DESIGNER·BACKEND DEV·FRONTEND DEV·QA ENGINEER의 AI 모델과 직급을 조정합니다',
+    back:     './dev-agency.html',
+    backLabel: '← SI 에이전시',
+  },
+};
+
 /* ─── 초기화 ─── */
 const init = async () => {
   try {
-    const data = await fetchJSON('../data/agents.json');
-    agentsData = data.agents;
+    await loadAgency(AGENTS_FILE);
 
-    renderAgentList();
-
-    const params = new URLSearchParams(window.location.search);
-    const agentParam = params.get('agent');
+    const agentParam = URL_PARAMS.get('agent');
     if (agentParam) selectAgent(agentParam);
     else renderEmptyPanel();
   } catch (e) {
     console.error('에이전트 데이터 로드 실패:', e);
+  }
+};
+
+/** 에이전시 파일 로드 + 전체 렌더링 (에이전시 전환 시에도 재사용) */
+const loadAgency = async (file) => {
+  const data = await fetchJSON(`../data/${file}`);
+  agentsData  = data.agents;
+  AGENTS_FILE = file;
+
+  /* Store에 선택된 에이전시 저장 → 모든 페이지가 참조 */
+  Store.set({ selectedAgency: file });
+
+  renderAgencySelector();
+  updatePageHeader();
+  renderAgentList();
+  renderEmptyPanel();
+  selectedAgentId = null;
+};
+
+/** 에이전시 유형 선택 카드 렌더링 */
+const renderAgencySelector = () => {
+  const container = document.getElementById('agency-selector');
+  if (!container) return;
+
+  const cardsHTML = AGENCY_OPTIONS.map(opt => {
+    const isActive = opt.file === AGENTS_FILE;
+    return `
+      <button
+        class="agency-select-card${isActive ? ' active' : ''}"
+        data-file="${opt.file}"
+        style="
+          --agency-color: ${opt.color};
+          --agency-glow: ${opt.glow};
+          border-color: ${isActive ? opt.color : 'var(--border)'};
+          background: ${isActive ? opt.glow : 'var(--surface)'};
+        "
+        aria-label="${opt.label} 선택"
+        aria-pressed="${isActive}"
+      >
+        <span class="agency-card-icon">${opt.icon}</span>
+        <div class="agency-card-body">
+          <div class="agency-card-label" style="color:${isActive ? opt.color : 'var(--text)'}">
+            ${opt.label}
+          </div>
+          <div class="agency-card-desc">${opt.desc}</div>
+        </div>
+        ${isActive ? '<span class="agency-card-check">✓</span>' : ''}
+      </button>
+    `;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="agency-selector-wrap">
+      <div class="agency-selector-label">에이전시 유형 선택</div>
+      <div class="agency-selector-grid">${cardsHTML}</div>
+    </div>
+  `;
+
+  /* 클릭 → 해당 에이전시 로드 */
+  container.querySelectorAll('.agency-select-card').forEach(card => {
+    card.addEventListener('click', () => {
+      if (card.dataset.file !== AGENTS_FILE) loadAgency(card.dataset.file);
+    });
+  });
+};
+
+/** 에이전시 유형에 따라 페이지 제목·서브타이틀·돌아가기 링크 갱신 */
+const updatePageHeader = () => {
+  const meta = AGENCY_META[AGENTS_FILE] || AGENCY_META['agents.json'];
+
+  const titleEl    = document.querySelector('.page-title span');
+  const subtitleEl = document.querySelector('.page-subtitle');
+  const backBtn    = document.querySelector('.header-actions .btn-ghost');
+
+  if (titleEl)    titleEl.textContent      = meta.title;
+  if (subtitleEl) subtitleEl.textContent   = meta.subtitle;
+  if (backBtn) {
+    backBtn.href        = meta.back;
+    backBtn.textContent = meta.backLabel;
   }
 };
 

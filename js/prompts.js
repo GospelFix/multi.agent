@@ -26,21 +26,35 @@ const getRankData = (agent, override) => {
   return { label: agent.rank, icon: agent.rankIcon };
 };
 
-/* ─── 컨텍스트 변수 정의 ─── */
-const CONTEXT_VARS = [
-  { code: '{{user_input}}',     desc: '프로젝트 요청 입력 내용' },
-  { code: '{{brand_info}}',     desc: '클라이언트 브랜드 가이드라인 (브랜드명·컬러·톤앤매너 등)' },
-  { code: '{{brand_strategy}}', desc: 'Strategist가 작성한 브랜드 전략서' },
-  { code: '{{copy_deck}}',      desc: 'Copywriter가 작성한 카피 덱' },
-  { code: '{{visual_brief}}',   desc: 'Art Director가 작성한 비주얼 브리프' },
-  { code: '{{content_plan}}',   desc: 'Content Planner가 작성한 콘텐츠 기획서' },
-];
+/* ─── 경로 설정 ─── */
+const IS_SUB_PROMPTS   = window.location.pathname.includes('/pages/');
+const PROMPTS_DATA_ROOT = IS_SUB_PROMPTS ? '../data/' : './data/';
+
+/* ─── 컨텍스트 변수: 로드된 에이전트의 outputFile 기반으로 동적 생성 ─── */
+let CONTEXT_VARS = [];
+
+const buildContextVars = (agents) => {
+  const base = [
+    { code: '{{user_input}}', desc: '프로젝트 요청 입력 내용' },
+    { code: '{{brand_info}}', desc: '클라이언트 정보 (브랜드명·컬러·톤앤매너 등)' },
+  ];
+  const agentVars = agents.map(a => ({
+    code: `{{${a.outputFile}}}`,
+    desc: `${a.name}이 생성한 ${a.desc}`,
+  }));
+  return [...base, ...agentVars];
+};
 
 /* ─── 초기화 ─── */
 const init = async () => {
   try {
-    const data = await fetchJSON('../data/agents.json');
+    /* Store에서 선택된 에이전시 파일 읽기 */
+    const agentsFile = Store.get().selectedAgency || 'agents.json';
+    const data = await fetchJSON(`${PROMPTS_DATA_ROOT}${agentsFile}`);
     agentsData = data.agents;
+
+    /* 로드된 에이전트 기반 컨텍스트 변수 빌드 */
+    CONTEXT_VARS = buildContextVars(agentsData);
 
     /* URL 파라미터로 초기 탭 결정 */
     const params = new URLSearchParams(window.location.search);

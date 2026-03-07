@@ -179,6 +179,120 @@ body::before {
   flex-shrink: 0;
 }
 
+/* ─── 에이전시 유형 선택 카드 ─── */
+.agency-selector-wrap {
+  margin-bottom: 24px;
+}
+
+.agency-selector-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 10px;
+}
+
+.agency-selector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+}
+
+.agency-select-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--transition-fast);
+  font-family: var(--font-sans);
+}
+
+.agency-select-card:hover {
+  border-color: var(--agency-color, var(--border-bright));
+  background: var(--agency-glow, var(--surface2));
+}
+
+.agency-card-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.agency-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.agency-card-label {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.agency-card-desc {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.agency-card-check {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--agency-color, var(--text));
+  flex-shrink: 0;
+}
+
+/* ─── 서브 내비게이션 (에이전시 유형 등) ─── */
+.sub-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding-left: 26px;
+  margin-bottom: 2px;
+}
+
+.sub-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  min-height: 34px;
+  border-left: 1px solid var(--border);
+}
+
+.sub-nav-item:hover {
+  background: var(--surface2);
+  color: var(--text-muted);
+  border-left-color: var(--border-bright);
+}
+
+.sub-nav-item.active {
+  color: var(--text);
+  border-left-color: var(--border-bright);
+  background: var(--surface2);
+}
+
+.sub-nav-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
 /* 사이드바 하단 토큰 잔여량 */
 .sidebar-footer {
   margin-top: auto;

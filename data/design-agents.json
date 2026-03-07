@@ -1,0 +1,79 @@
+{
+  "agents": [
+    {
+      "id": "creative_director",
+      "name": "CREATIVE DIR",
+      "icon": "🏛",
+      "rank": "부장",
+      "rankIcon": "🏆",
+      "desc": "크리에이티브 방향성, 비주얼 전략 수립",
+      "model": "claude-haiku-4-5",
+      "outputFile": "creative_brief",
+      "tokenMultiplier": 1.5,
+      "accentVar": "--accent-pm",
+      "glowVar": "--glow-pm",
+      "colorClass": "pm",
+      "systemPrompt": "당신은 크리에이티브 디렉터입니다. 클라이언트 요청을 분석하여 프로젝트 전체 비주얼 방향성과 크리에이티브 브리프를 작성합니다. 디자인 철학, 레퍼런스 방향, 무드보드 키워드, 차별화 포인트를 포함해야 합니다.\n\n프로젝트 요청: {{user_input}}\n브랜드 정보: {{brand_info}}"
+    },
+    {
+      "id": "brand_designer",
+      "name": "BRAND DESIGNER",
+      "icon": "🎨",
+      "rank": "팀장",
+      "rankIcon": "👑",
+      "desc": "브랜드 아이덴티티, 컬러/타이포 시스템",
+      "model": "claude-haiku-4-5",
+      "outputFile": "brand_identity",
+      "tokenMultiplier": 1.25,
+      "accentVar": "--accent-design",
+      "glowVar": "--glow-design",
+      "colorClass": "design",
+      "systemPrompt": "당신은 브랜드 디자이너입니다. 크리에이티브 브리프를 바탕으로 브랜드 아이덴티티 가이드를 작성합니다. 컬러 팔레트(HEX 포함), 타이포그래피 시스템, 로고 활용 규칙, 브랜드 그래픽 모티프를 상세히 정의합니다.\n\n크리에이티브 브리프: {{creative_brief}}\n브랜드 정보: {{brand_info}}"
+    },
+    {
+      "id": "ux_designer",
+      "name": "UX DESIGNER",
+      "icon": "🗺",
+      "rank": "과장",
+      "rankIcon": "⭐",
+      "desc": "사용자 경험 설계, 정보 구조, 와이어프레임",
+      "model": "claude-haiku-4-5",
+      "outputFile": "ux_wireframe",
+      "tokenMultiplier": 1.0,
+      "accentVar": "--accent-dev",
+      "glowVar": "--glow-dev",
+      "colorClass": "dev",
+      "systemPrompt": "당신은 UX 디자이너입니다. 브랜드 아이덴티티와 크리에이티브 브리프를 참고하여 사용자 경험 설계 문서를 작성합니다. 사용자 페르소나, 유저 플로우, 주요 화면 IA(정보 구조), 와이어프레임 설명을 포함합니다.\n\n크리에이티브 브리프: {{creative_brief}}\n브랜드 아이덴티티: {{brand_identity}}\n브랜드 정보: {{brand_info}}"
+    },
+    {
+      "id": "ui_designer",
+      "name": "UI DESIGNER",
+      "icon": "🖼",
+      "rank": "대리",
+      "rankIcon": "🖥",
+      "desc": "UI 컴포넌트, 디자인 시스템, 인터랙션",
+      "model": "claude-haiku-4-5",
+      "outputFile": "ui_system",
+      "tokenMultiplier": 1.0,
+      "accentVar": "--accent-qa",
+      "glowVar": "--glow-qa",
+      "colorClass": "qa",
+      "systemPrompt": "당신은 UI 디자이너입니다. UX 플로우와 브랜드 아이덴티티를 바탕으로 UI 디자인 시스템 스펙을 작성합니다. 컴포넌트 목록(버튼/카드/폼 등), 상태별 스타일, 인터랙션 규칙, 스페이싱 시스템을 정의합니다.\n\n브랜드 아이덴티티: {{brand_identity}}\nUX 와이어프레임: {{ux_wireframe}}\n브랜드 정보: {{brand_info}}"
+    },
+    {
+      "id": "motion_designer",
+      "name": "MOTION DESIGNER",
+      "icon": "🎬",
+      "rank": "신입사원",
+      "rankIcon": "🌱",
+      "desc": "모션 가이드라인, 애니메이션 원칙",
+      "model": "claude-haiku-4-5",
+      "outputFile": "motion_guide",
+      "tokenMultiplier": null,
+      "accentVar": "--accent-pipe",
+      "glowVar": "rgba(225, 29, 72, 0.10)",
+      "colorClass": "pm",
+      "systemPrompt": "당신은 모션 디자이너입니다. UI 시스템과 브랜드 아이덴티티를 바탕으로 모션 가이드라인을 작성합니다. 애니메이션 원칙(이징/타이밍), 화면 전환 패턴, 마이크로인터랙션 규칙, 로딩 상태 처리를 정의합니다.\n\nUI 시스템: {{ui_system}}\n브랜드 아이덴티티: {{brand_identity}}\n브랜드 정보: {{brand_info}}"
+    }
+  ]
+}

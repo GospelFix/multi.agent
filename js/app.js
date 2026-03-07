@@ -12,9 +12,34 @@ const NAV_ITEMS = [
   {
     section: '워크스페이스',
     items: [
-      { label: '파이프라인', href: `${ROOT}index.html`,          dot: 'var(--border)' },
-      { label: '에이전트',   href: `${ROOT}pages/agents.html`,   dot: 'var(--border)' },
-      { label: '프롬프트',   href: `${ROOT}pages/prompts.html`,  dot: 'var(--border)' },
+      { label: '파이프라인', href: `${ROOT}index.html`,         dot: 'var(--border)' },
+      {
+        label: '에이전트',
+        href: `${ROOT}pages/agents.html`,
+        dot: 'var(--border)',
+        /* 에이전시 유형 서브메뉴 */
+        subItems: [
+          {
+            label: '마케팅회사',
+            href: `${ROOT}pages/agents.html?agents=marketing-agents.json`,
+            agentsFile: 'marketing-agents.json',
+            dot: 'var(--accent-pm)',
+          },
+          {
+            label: '디자인 에이전시',
+            href: `${ROOT}pages/agents.html?agents=design-agents.json`,
+            agentsFile: 'design-agents.json',
+            dot: 'var(--accent-design)',
+          },
+          {
+            label: 'SI 에이전시',
+            href: `${ROOT}pages/agents.html?agents=dev-agents.json`,
+            agentsFile: 'dev-agents.json',
+            dot: 'var(--accent-dev)',
+          },
+        ],
+      },
+      { label: '프롬프트',  href: `${ROOT}pages/prompts.html`, dot: 'var(--border)' },
     ],
   },
   {
@@ -34,18 +59,40 @@ const renderSidebar = () => {
   const state = Store.get();
   const currentPath = window.location.pathname;
 
+  /* agents.html 여부 + 현재 에이전시 파일명 감지 (URL 파라미터 → Store 순으로 우선순위) */
+  const isAgentsPage      = currentPath.endsWith('agents.html');
+  const currentAgentsFile = new URLSearchParams(window.location.search).get('agents')
+    || Store.get().selectedAgency
+    || 'agents.json';
+
   /* 내비 섹션 HTML 생성 */
   const navHTML = NAV_ITEMS.map((section, idx) => {
     const itemsHTML = section.items.map((item) => {
-      /* 현재 페이지 URL과 비교하여 active 여부 결정 */
-      const isActive = currentPath.endsWith(item.href.replace(ROOT, '')) ||
+      /* active 판별 */
+      const isActive = currentPath.endsWith(item.href.replace(ROOT, '').split('?')[0]) ||
         (item.href.includes('index.html') && (currentPath.endsWith('/') || currentPath.endsWith('index.html')));
+
+      /* 서브 아이템 렌더링 (에이전트 항목이 active이거나 agents 페이지일 때 노출) */
+      let subHTML = '';
+      if (item.subItems && (isActive || isAgentsPage)) {
+        const subItemsHTML = item.subItems.map((sub) => {
+          const isSubActive = isAgentsPage && sub.agentsFile === currentAgentsFile;
+          return `
+            <a href="${sub.href}" class="sub-nav-item${isSubActive ? ' active' : ''}" aria-label="${sub.label}">
+              <div class="sub-nav-dot" style="background:${isSubActive ? sub.dot : 'var(--border)'}"></div>
+              ${sub.label}
+            </a>
+          `;
+        }).join('');
+        subHTML = `<div class="sub-nav-list">${subItemsHTML}</div>`;
+      }
 
       return `
         <a href="${item.href}" class="nav-item${isActive ? ' active' : ''}" aria-label="${item.label}">
           <div class="nav-dot" style="background:${isActive ? 'var(--accent-pipe)' : item.dot}"></div>
           ${item.label}
         </a>
+        ${subHTML}
       `;
     }).join('');
 

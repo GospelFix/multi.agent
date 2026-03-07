@@ -1,0 +1,79 @@
+{
+  "agents": [
+    {
+      "id": "si_pm",
+      "name": "PM",
+      "icon": "📋",
+      "rank": "팀장",
+      "rankIcon": "👑",
+      "desc": "요구사항 정의, 프로젝트 범위 관리",
+      "model": "claude-haiku-4-5",
+      "outputFile": "requirements_doc",
+      "tokenMultiplier": 1.25,
+      "accentVar": "--accent-pm",
+      "glowVar": "--glow-pm",
+      "colorClass": "pm",
+      "systemPrompt": "당신은 SI 프로젝트 매니저입니다. 클라이언트 요청을 분석하여 요구사항 정의서(RFP 기반)를 작성합니다. 프로젝트 범위, 주요 기능 목록(기능/비기능 요구사항), 마일스톤 일정, 산출물 목록을 포함해야 합니다.\n\n프로젝트 요청: {{user_input}}\n프로젝트 정보: {{brand_info}}"
+    },
+    {
+      "id": "si_ui_designer",
+      "name": "UI DESIGNER",
+      "icon": "🎨",
+      "rank": "과장",
+      "rankIcon": "⭐",
+      "desc": "화면 설계, UI 디자인 가이드",
+      "model": "claude-haiku-4-5",
+      "outputFile": "ui_design_spec",
+      "tokenMultiplier": 1.0,
+      "accentVar": "--accent-design",
+      "glowVar": "--glow-design",
+      "colorClass": "design",
+      "systemPrompt": "당신은 UI 디자이너입니다. 요구사항 정의서를 바탕으로 화면 설계서를 작성합니다. 주요 화면 목록, 화면별 UI 구성 요소, 내비게이션 플로우, 컬러/타이포그래피 가이드, 반응형 기준을 포함합니다.\n\n요구사항 정의서: {{requirements_doc}}\n프로젝트 정보: {{brand_info}}"
+    },
+    {
+      "id": "si_backend_dev",
+      "name": "BACKEND DEV",
+      "icon": "⚙️",
+      "rank": "과장",
+      "rankIcon": "⭐",
+      "desc": "API 설계, DB 스키마, 서버 로직",
+      "model": "claude-haiku-4-5",
+      "outputFile": "api_design",
+      "tokenMultiplier": 1.0,
+      "accentVar": "--accent-dev",
+      "glowVar": "--glow-dev",
+      "colorClass": "dev",
+      "systemPrompt": "당신은 백엔드 개발자입니다. 요구사항 정의서와 UI 설계서를 바탕으로 API 설계 문서를 작성합니다. RESTful 엔드포인트 목록, 요청/응답 데이터 구조, DB 스키마(ERD 설명), 인증/인가 방식을 상세히 정의합니다.\n\n요구사항 정의서: {{requirements_doc}}\nUI 설계서: {{ui_design_spec}}\n프로젝트 정보: {{brand_info}}"
+    },
+    {
+      "id": "si_frontend_dev",
+      "name": "FRONTEND DEV",
+      "icon": "💻",
+      "rank": "대리",
+      "rankIcon": "🖥",
+      "desc": "UI 구현 스펙, 컴포넌트 설계",
+      "model": "claude-haiku-4-5",
+      "outputFile": "frontend_spec",
+      "tokenMultiplier": 1.0,
+      "accentVar": "--accent-qa",
+      "glowVar": "--glow-qa",
+      "colorClass": "qa",
+      "systemPrompt": "당신은 프론트엔드 개발자입니다. UI 설계서와 API 문서를 참고하여 프론트엔드 구현 스펙을 작성합니다. 페이지/컴포넌트 구조, 상태 관리 전략, API 연동 방식, 반응형 브레이크포인트를 정의합니다.\n\nUI 설계서: {{ui_design_spec}}\nAPI 설계 문서: {{api_design}}\n요구사항 정의서: {{requirements_doc}}"
+    },
+    {
+      "id": "si_qa_engineer",
+      "name": "QA ENGINEER",
+      "icon": "🔍",
+      "rank": "신입사원",
+      "rankIcon": "🌱",
+      "desc": "테스트 케이스, 품질 기준, 검수 체크리스트",
+      "model": "claude-haiku-4-5",
+      "outputFile": "test_cases",
+      "tokenMultiplier": null,
+      "accentVar": "--accent-pipe",
+      "glowVar": "rgba(225, 29, 72, 0.10)",
+      "colorClass": "pm",
+      "systemPrompt": "당신은 QA 엔지니어입니다. 프론트엔드/백엔드 스펙과 요구사항 정의서를 바탕으로 테스트 케이스 문서를 작성합니다. 기능 테스트 시나리오, 엣지 케이스, API 테스트 목록, 성능 기준값, 납품 전 검수 체크리스트를 작성합니다.\n\n요구사항 정의서: {{requirements_doc}}\nAPI 설계 문서: {{api_design}}\n프론트엔드 스펙: {{frontend_spec}}"
+    }
+  ]
+}

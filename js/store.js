@@ -15,6 +15,7 @@ const Store = (() => {
     promptOverrides: {},   // { [agentId]: string }
     pipelineStatus: 'idle', // 'idle' | 'running' | 'completed'
     activeRunStep: null,   // 현재 실행 중인 에이전트 id
+    selectedAgency: 'agents.json', // 선택된 에이전시 유형 파일명
     apiKey: '',            // Anthropic API 키 (실제 AI 생성에 사용)
     userInput: '',         // {{user_input}} 변수에 주입되는 프로젝트 요청
     generatedRuns: [],     // 실제 생성된 실행 기록 (localStorage 영속)

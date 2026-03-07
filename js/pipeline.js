@@ -44,13 +44,28 @@ const getAgentRankLabel = (agent, state) => {
 /** 토큰 → 크레딧 변환 (1 크레딧 = 1,000 토큰, 올림) */
 const calcCredits = (tokens) => Math.ceil(tokens / 1000);
 
+/* ─── 경로 설정: pages/ 하위 여부에 따라 data/pages 경로 분기 ─── */
+const IS_SUB_PAGE = window.location.pathname.includes('/pages/');
+const DATA_ROOT   = IS_SUB_PAGE ? '../data/' : './data/';
+const PAGES_ROOT  = IS_SUB_PAGE ? './' : './pages/';
+
+/* body data-agents → Store 동기화 (없으면 Store에서 읽기) */
+const AGENTS_FILE = (() => {
+  const fromBody  = document.body.dataset.agents;
+  const fromStore = Store.get().selectedAgency;
+  const resolved  = fromBody || fromStore || 'agents.json';
+  /* 에이전시 전용 파이프라인 페이지 진입 시 Store에 동기화 */
+  if (fromBody) Store.set({ selectedAgency: fromBody });
+  return resolved;
+})();
+
 /* ─── 초기화 ─── */
 const init = async () => {
   try {
     [agentsData, historyData, outputsData] = await Promise.all([
-      fetchJSON('./data/agents.json').then(d => d.agents),
-      fetchJSON('./data/history.json').then(d => d.runs),
-      fetchJSON('./data/outputs.json').then(d => d.outputs),
+      fetchJSON(`${DATA_ROOT}${AGENTS_FILE}`).then(d => d.agents),
+      fetchJSON(`${DATA_ROOT}history.json`).then(d => d.runs),
+      fetchJSON(`${DATA_ROOT}outputs.json`).then(d => d.outputs),
     ]);
 
     /* localStorage에 저장된 이전 생성 결과물 앞에 병합 */
@@ -105,7 +120,7 @@ const renderPipelineSteps = () => {
 
   container.querySelectorAll('.tag-edit[data-agent]').forEach(btn => {
     btn.addEventListener('click', () => {
-      window.location.href = `./pages/prompts.html?agent=${btn.dataset.agent}`;
+      window.location.href = `${PAGES_ROOT}prompts.html?agent=${btn.dataset.agent}`;
     });
   });
 };
@@ -219,7 +234,7 @@ const renderAgentCards = () => {
   /* 카드 클릭 → 에이전트 설정 페이지 이동 */
   container.querySelectorAll('.agent-card').forEach(card => {
     card.addEventListener('click', () => {
-      window.location.href = `./pages/agents.html?agent=${card.dataset.agent}`;
+      window.location.href = `${PAGES_ROOT}agents.html?agents=${AGENTS_FILE}&agent=${card.dataset.agent}`;
     });
     card.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') card.click();
@@ -424,7 +439,7 @@ const renderOutputPreview = (outputId, agentId) => {
   }
 
   if (previewLink) {
-    previewLink.href = `./pages/output.html?run=${output.runId}&output=${output.id}`;
+    previewLink.href = `${PAGES_ROOT}output.html?run=${output.runId}&output=${output.id}`;
   }
 };
 
@@ -467,6 +482,7 @@ const buildTemplateOutput = (agent, userInput, brandInfo, collectedOutputs) => {
   const notice = '\n\n> ⚡ **AI 연결 설정**에 API 키를 입력하면 실제 AI가 이 내용을 채워드립니다.';
 
   switch (agent.id) {
+    /* ── 기존 마케팅 파이프라인 (index.html) ── */
     case 'strategist':
       return `# 브랜드 전략서\n## ${brand}\n\n### 프로젝트 요청\n${userInput || '(없음)'}\n\n### 브랜드 가이드라인\n- 슬로건: ${slogan}\n- 컬러: ${colors}\n- 톤앤매너: ${tone}\n- 타겟: ${target}\n- 경쟁사: ${rivals}\n\n### 포지셔닝 전략\n- USP: [AI가 채웁니다]\n- 핵심 메시지: [AI가 채웁니다]\n- 타겟 인사이트: [AI가 채웁니다]${notice}`;
     case 'copywriter':
@@ -475,6 +491,41 @@ const buildTemplateOutput = (agent, userInput, brandInfo, collectedOutputs) => {
       return `# 비주얼 브리프\n## ${brand}\n\n### 컬러 가이드\n${colors}\n\n### 톤앤매너\n${tone}\n\n### 비주얼 방향성\n- 이미지 무드: [AI가 채웁니다]\n- 타이포그래피: [AI가 채웁니다]\n- 레이아웃: [AI가 채웁니다]${notice}`;
     case 'content_planner':
       return `# 콘텐츠 기획서\n## ${brand}\n\n### 타겟\n${target}\n\n### 4주 콘텐츠 캘린더\n- 1주차: [AI가 채웁니다]\n- 2주차: [AI가 채웁니다]\n- 3주차: [AI가 채웁니다]\n- 4주차: [AI가 채웁니다]\n\n### 채널 전략\n- [AI가 채웁니다]${notice}`;
+
+    /* ── 마케팅회사 파이프라인 ── */
+    case 'marketing_strategist':
+      return `# 마케팅 전략서\n## ${brand}\n\n### 프로젝트 요청\n${userInput || '(없음)'}\n\n### 시장 분석\n- 타겟: ${target}\n- 경쟁사: ${rivals}\n- 포지셔닝: [AI가 채웁니다]\n\n### 캠페인 목표 (KPI)\n- [AI가 채웁니다]\n\n### 채널 전략 개요\n- [AI가 채웁니다]${notice}`;
+    case 'marketing_copywriter':
+      return `# 카피 덱\n## ${brand}\n\n### 슬로건\n${slogan}\n\n### 헤드라인 3종\n- A. [AI가 채웁니다]\n- B. [AI가 채웁니다]\n- C. [AI가 채웁니다]\n\n### 채널별 광고 문구\n- SNS: [AI가 채웁니다]\n- 검색광고: [AI가 채웁니다]${notice}`;
+    case 'marketing_media_planner':
+      return `# 미디어 믹스 기획서\n## ${brand}\n\n### 채널별 예산 배분\n- SNS 광고: [AI가 채웁니다]\n- 검색광고: [AI가 채웁니다]\n- 디스플레이: [AI가 채웁니다]\n\n### 집행 기간 및 타임라인\n- [AI가 채웁니다]\n\n### 예상 도달률\n- [AI가 채웁니다]${notice}`;
+    case 'marketing_analyst':
+      return `# 성과 측정 프레임워크\n## ${brand}\n\n### KPI 목표값\n- 노출수: [AI가 채웁니다]\n- 클릭률: [AI가 채웁니다]\n- 전환율: [AI가 채웁니다]\n\n### 채널별 성과 지표\n- [AI가 채웁니다]\n\n### 월간 리포팅 템플릿\n- [AI가 채웁니다]${notice}`;
+
+    /* ── 디자인 에이전시 파이프라인 ── */
+    case 'creative_director':
+      return `# 크리에이티브 브리프\n## ${brand}\n\n### 프로젝트 요청\n${userInput || '(없음)'}\n\n### 디자인 철학\n- [AI가 채웁니다]\n\n### 비주얼 레퍼런스 방향\n- 무드보드 키워드: ${tone}\n- 차별화 포인트: [AI가 채웁니다]${notice}`;
+    case 'brand_designer':
+      return `# 브랜드 아이덴티티 가이드\n## ${brand}\n\n### 컬러 팔레트\n${colors}\n\n### 타이포그래피 시스템\n- 주폰트: [AI가 채웁니다]\n- 보조폰트: [AI가 채웁니다]\n\n### 로고 활용 규칙\n- [AI가 채웁니다]${notice}`;
+    case 'ux_designer':
+      return `# UX 설계 문서\n## ${brand}\n\n### 사용자 페르소나\n- 타겟: ${target}\n- [AI가 채웁니다]\n\n### 유저 플로우\n- [AI가 채웁니다]\n\n### 주요 화면 IA\n- [AI가 채웁니다]${notice}`;
+    case 'ui_designer':
+      return `# UI 디자인 시스템 스펙\n## ${brand}\n\n### 컴포넌트 목록\n- 버튼: [AI가 채웁니다]\n- 카드: [AI가 채웁니다]\n- 폼: [AI가 채웁니다]\n\n### 인터랙션 규칙\n- [AI가 채웁니다]\n\n### 스페이싱 시스템\n- [AI가 채웁니다]${notice}`;
+    case 'motion_designer':
+      return `# 모션 가이드라인\n## ${brand}\n\n### 애니메이션 원칙\n- 이징: [AI가 채웁니다]\n- 타이밍: [AI가 채웁니다]\n\n### 화면 전환 패턴\n- [AI가 채웁니다]\n\n### 마이크로인터랙션\n- [AI가 채웁니다]${notice}`;
+
+    /* ── SI 에이전시 파이프라인 ── */
+    case 'si_pm':
+      return `# 요구사항 정의서\n## ${brand}\n\n### 프로젝트 요청\n${userInput || '(없음)'}\n\n### 기능 요구사항\n- [AI가 채웁니다]\n\n### 비기능 요구사항\n- [AI가 채웁니다]\n\n### 마일스톤 일정\n- 1단계: [AI가 채웁니다]\n- 2단계: [AI가 채웁니다]\n\n### 산출물 목록\n- [AI가 채웁니다]${notice}`;
+    case 'si_ui_designer':
+      return `# 화면 설계서\n## ${brand}\n\n### 주요 화면 목록\n- [AI가 채웁니다]\n\n### 내비게이션 플로우\n- [AI가 채웁니다]\n\n### UI 가이드\n- 컬러: ${colors || '[AI가 채웁니다]'}\n- 타이포그래피: [AI가 채웁니다]${notice}`;
+    case 'si_backend_dev':
+      return `# API 설계 문서\n## ${brand}\n\n### RESTful 엔드포인트 목록\n- POST /auth/login\n- GET /items\n- [AI가 채웁니다]\n\n### DB 스키마\n- [AI가 채웁니다]\n\n### 인증/인가 방식\n- [AI가 채웁니다]${notice}`;
+    case 'si_frontend_dev':
+      return `# 프론트엔드 구현 스펙\n## ${brand}\n\n### 페이지 구조\n- [AI가 채웁니다]\n\n### 컴포넌트 계층도\n- [AI가 채웁니다]\n\n### 상태 관리 전략\n- [AI가 채웁니다]\n\n### API 연동 방식\n- [AI가 채웁니다]${notice}`;
+    case 'si_qa_engineer':
+      return `# QA 검수 문서\n## ${brand}\n\n### 기능 테스트 시나리오\n- [AI가 채웁니다]\n\n### 엣지 케이스\n- [AI가 채웁니다]\n\n### 납품 전 검수 체크리스트\n- [ ] [AI가 채웁니다]\n\n### 성능 기준값\n- [AI가 채웁니다]${notice}`;
+
     default:
       return `# ${agent.name} 결과물\n## ${brand}\n\n### 요청\n${userInput || '(없음)'}${notice}`;
   }
@@ -660,15 +711,20 @@ const formatBrandInfo = (brandInfo) => {
   return fields.length > 0 ? fields.join('\n') : '(브랜드 정보 미입력)';
 };
 
-/** {{변수}}를 실제 값으로 치환 */
+/** {{변수}}를 실제 값으로 치환 — collectedOutputs의 모든 키를 동적으로 처리 */
 const resolvePrompt = (prompt, userInput, brandInfo, collectedOutputs) => {
-  return prompt
-    .replace(/\{\{user_input\}\}/g,      userInput || '(요청 없음)')
-    .replace(/\{\{brand_info\}\}/g,      formatBrandInfo(brandInfo))
-    .replace(/\{\{brand_strategy\}\}/g,  collectedOutputs.brand_strategy  || '(브랜드 전략서 미생성)')
-    .replace(/\{\{copy_deck\}\}/g,       collectedOutputs.copy_deck        || '(카피 덱 미생성)')
-    .replace(/\{\{visual_brief\}\}/g,    collectedOutputs.visual_brief     || '(비주얼 브리프 미생성)')
-    .replace(/\{\{content_plan\}\}/g,    collectedOutputs.content_plan     || '(콘텐츠 기획서 미생성)');
+  /* 기본 변수 치환 */
+  let resolved = prompt
+    .replace(/\{\{user_input\}\}/g, userInput || '(요청 없음)')
+    .replace(/\{\{brand_info\}\}/g, formatBrandInfo(brandInfo));
+
+  /* 수집된 아웃풋 변수 동적 치환 (에이전시 유형 불문 모두 처리) */
+  Object.entries(collectedOutputs).forEach(([key, value]) => {
+    const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
+    resolved = resolved.replace(regex, value || `(${key} 미생성)`);
+  });
+
+  return resolved;
 };
 
 /** Promise 기반 딜레이 헬퍼 */

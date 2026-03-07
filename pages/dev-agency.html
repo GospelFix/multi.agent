@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SI 에이전시 파이프라인 — Marketing Agent Studio</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/pipeline.css">
+</head>
+<body data-agents="dev-agents.json">
+
+<!-- 모바일 햄버거 메뉴 버튼 -->
+<button class="hamburger" id="hamburger-btn" aria-label="메뉴 열기">☰</button>
+
+<!-- 사이드바 (app.js가 동적 생성) -->
+<aside class="sidebar" id="sidebar" role="navigation" aria-label="주 내비게이션"></aside>
+
+<!-- 메인 콘텐츠 -->
+<main class="main" role="main">
+
+  <!-- 페이지 헤더 -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">SI 에이전시 <span>파이프라인</span></h1>
+      <p class="page-subtitle">요구사항 정의부터 UI 설계·백엔드 API·프론트엔드 스펙·QA 검수까지 — SI 납품 산출물 전체를 자동 생성합니다</p>
+    </div>
+    <div class="header-actions">
+      <a href="../index.html" class="btn btn-ghost">← 기본 파이프라인</a>
+      <button class="btn btn-primary" id="run-btn-header" aria-label="전체 파이프라인 실행">
+        ▶ 전체 실행
+      </button>
+    </div>
+  </div>
+
+  <!-- 파이프라인 2열 레이아웃 -->
+  <div class="pipeline-layout">
+
+    <!-- 좌측: 파이프라인 설정 -->
+    <div>
+      <!-- 컨텍스트 누적 알림 배너 -->
+      <div class="context-notice" role="status" aria-live="polite">
+        <span class="context-icon" aria-hidden="true">🚀</span>
+        <span class="context-text">SI 에이전시 모드 — PM 요구사항 → UI 설계 → 백엔드 API → 프론트엔드 스펙 → QA 검수 순으로 누적됩니다</span>
+      </div>
+
+      <!-- API 키 설정 카드 -->
+      <div class="card api-key-card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">AI 연결 설정</div>
+            <div class="card-subtitle">Anthropic API 키 입력 시 실제 AI가 결과물을 생성합니다</div>
+          </div>
+          <div class="api-key-status" id="api-key-status"></div>
+        </div>
+        <div class="api-key-row">
+          <input type="password" id="api-key-input" class="brand-input api-key-input"
+            placeholder="sk-ant-api03-..." aria-label="Anthropic API 키 입력" autocomplete="off" />
+          <button class="btn btn-primary btn-sm" id="api-key-save-btn" aria-label="API 키 저장">저장</button>
+          <button class="btn btn-ghost btn-sm" id="api-key-clear-btn" aria-label="API 키 삭제" style="display:none">삭제</button>
+        </div>
+      </div>
+
+      <!-- 프로젝트 요청 입력 카드 -->
+      <div class="card user-input-card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">프로젝트 요청</div>
+            <div class="card-subtitle">{{user_input}} 변수로 에이전트 프롬프트에서 참조됩니다</div>
+          </div>
+        </div>
+        <textarea id="user-input-area" class="user-input-textarea"
+          placeholder="개발 프로젝트 요청을 입력하세요...&#10;예) 중고 거래 모바일 앱 MVP 개발. 실시간 채팅, 결제 연동, 지도 기반 검색 포함. React Native + Node.js 스택."
+          rows="3" aria-label="프로젝트 요청 입력"></textarea>
+      </div>
+
+      <!-- 클라이언트 브랜드 가이드라인 카드 -->
+      <div class="card brand-info-card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">프로젝트 정보 <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);font-weight:400">— 기술 요구사항</span></div>
+            <div class="card-subtitle">{{brand_info}} 변수로 모든 에이전트 프롬프트에서 참조됩니다</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="brand-info-toggle" aria-expanded="false" aria-controls="brand-info-body">
+            펼치기 ▾
+          </button>
+        </div>
+        <div id="brand-info-body" class="brand-info-body" style="display:none;">
+          <div class="brand-info-grid">
+            <div class="brand-field">
+              <label class="brand-label" for="brand-name">서비스명</label>
+              <input type="text" id="brand-name" class="brand-input"
+                placeholder="예) 당근마켓 클론 MVP" aria-label="서비스명 입력" />
+            </div>
+            <div class="brand-field">
+              <label class="brand-label" for="brand-slogan">핵심 기능</label>
+              <input type="text" id="brand-slogan" class="brand-input"
+                placeholder="예) 중고 거래, 실시간 채팅, 위치 기반 검색" aria-label="핵심 기능 입력" />
+            </div>
+            <div class="brand-field">
+              <label class="brand-label" for="brand-colors">기술 스택</label>
+              <input type="text" id="brand-colors" class="brand-input"
+                placeholder="예) React Native, Node.js, PostgreSQL" aria-label="기술 스택 입력" />
+            </div>
+            <div class="brand-field">
+              <label class="brand-label" for="brand-tone">개발 기간</label>
+              <input type="text" id="brand-tone" class="brand-input"
+                placeholder="예) 3개월, MVP 기준" aria-label="개발 기간 입력" />
+            </div>
+            <div class="brand-field">
+              <label class="brand-label" for="brand-target">타겟 사용자</label>
+              <input type="text" id="brand-target" class="brand-input"
+                placeholder="예) 20~40대 중고 거래 이용자" aria-label="타겟 사용자 입력" />
+            </div>
+            <div class="brand-field">
+              <label class="brand-label" for="brand-competitors">레퍼런스 서비스</label>
+              <input type="text" id="brand-competitors" class="brand-input"
+                placeholder="예) 당근마켓, 번개장터, 중고나라" aria-label="레퍼런스 서비스 입력" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 파이프라인 카드 -->
+      <div class="card pipeline-card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">단계 구성</div>
+            <div class="card-subtitle">에이전트 → 아웃풋 파일</div>
+          </div>
+          <button class="run-btn" id="run-btn-card" aria-label="파이프라인 실행">
+            <span aria-hidden="true">▶</span> 실행 중
+          </button>
+        </div>
+
+        <!-- 에이전트 스텝 (pipeline.js가 동적 생성) -->
+        <div class="agent-steps" id="agent-steps" role="list" aria-label="파이프라인 단계">
+          <div style="text-align:center;padding:32px;color:var(--text-dim);font-family:var(--font-mono);font-size:11px;">
+            로딩 중...
+          </div>
+        </div>
+      </div>
+
+      <!-- 에이전트 카드 그리드 -->
+      <div class="agents-section">
+        <div class="section-header">
+          <h2 class="section-title">에이전트 설정</h2>
+          <a href="./agents.html?agents=dev-agents.json" class="btn btn-ghost btn-sm" aria-label="에이전트 추가">
+            + 추가
+          </a>
+        </div>
+        <div class="agents-grid" id="agent-cards-grid" role="list" aria-label="에이전트 목록">
+        </div>
+      </div>
+    </div>
+
+    <!-- 우측: 실행 패널 -->
+    <div class="run-panel">
+
+      <!-- 실행 히스토리 카드 -->
+      <div class="run-history-card">
+        <div class="run-history-header">
+          <div class="run-tabs" id="run-tabs" role="tablist" aria-label="실행 기록 탭">
+          </div>
+          <div class="run-status" aria-live="polite">
+            <div class="status-dot" id="run-status-dot" aria-hidden="true"></div>
+            <span id="run-status-label" style="font-family:var(--font-mono);font-size:10px;">대기</span>
+          </div>
+        </div>
+
+        <div class="run-result-list" id="run-result-list" role="list" aria-label="에이전트 실행 결과">
+        </div>
+
+        <!-- 토큰 사용량 바 -->
+        <div class="token-section">
+          <div class="token-section-label">토큰 사용량</div>
+          <div class="token-bar-wrap" id="token-bar-wrap" aria-label="에이전트별 토큰 사용량">
+          </div>
+        </div>
+      </div>
+
+      <!-- 아웃풋 미리보기 -->
+      <div class="output-preview">
+        <div class="preview-header">
+          <div class="preview-title" id="preview-title">📄 요구사항 정의서 미리보기</div>
+          <a href="./output.html" class="btn btn-ghost btn-sm" id="preview-link"
+             aria-label="전체 아웃풋 보기">
+            전체보기
+          </a>
+        </div>
+        <div class="preview-body">
+          <div class="preview-text" id="preview-text">
+            파이프라인을 실행하면 결과물이 여기에 표시됩니다.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<!-- 의존성 순서: store → app → pipeline -->
+<script src="../js/store.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/pipeline.js"></script>
+
+</body>
+</html>
