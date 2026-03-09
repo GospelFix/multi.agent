@@ -13,11 +13,24 @@ let activeOutputId = null;
 /* ─── 초기화 ─── */
 const init = async () => {
   try {
-    [agentsData, historyData, outputsData] = await Promise.all([
-      fetchJSON('../data/agents.json').then(d => d.agents),
+    /* 모든 에이전시 파일을 병렬 로드 후 중복 없이 병합 */
+    const [allAgentFiles, history, outputs] = await Promise.all([
+      Promise.all([
+        fetchJSON('../data/agents.json').then(d => d.agents),
+        fetchJSON('../data/marketing-agents.json').then(d => d.agents).catch(() => []),
+        fetchJSON('../data/design-agents.json').then(d => d.agents).catch(() => []),
+        fetchJSON('../data/dev-agents.json').then(d => d.agents).catch(() => []),
+      ]),
       fetchJSON('../data/history.json').then(d => d.runs),
       fetchJSON('../data/outputs.json').then(d => d.outputs),
     ]);
+
+    /* id 기준 중복 제거 병합 */
+    const agentMap = new Map();
+    allAgentFiles.flat().forEach(a => agentMap.set(a.id, a));
+    agentsData  = Array.from(agentMap.values());
+    historyData = history;
+    outputsData = outputs;
 
     /* localStorage에 저장된 이전 생성 결과물 앞에 병합 */
     const stored = Store.get();
@@ -69,6 +82,7 @@ const renderFilePanel = () => {
     grouped[output.runId].push(output);
   });
 
+  /* 내림차순: 최신 실행이 위에 표시 */
   const groupsHTML = historyData.map(run => {
     const runOutputs = grouped[run.id];
     if (!runOutputs || !runOutputs.length) return '';

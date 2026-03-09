@@ -12,32 +12,7 @@ const NAV_ITEMS = [
   {
     section: '워크스페이스',
     items: [
-      {
-        label: '에이전트',
-        href: `${ROOT}pages/agents.html`,
-        dot: 'var(--border)',
-        /* 에이전시 유형 서브메뉴 */
-        subItems: [
-          {
-            label: '마케팅회사',
-            href: `${ROOT}pages/agents.html?agents=marketing-agents.json`,
-            agentsFile: 'marketing-agents.json',
-            dot: 'var(--accent-pm)',
-          },
-          {
-            label: '디자인 에이전시',
-            href: `${ROOT}pages/agents.html?agents=design-agents.json`,
-            agentsFile: 'design-agents.json',
-            dot: 'var(--accent-design)',
-          },
-          {
-            label: 'SI 에이전시',
-            href: `${ROOT}pages/agents.html?agents=dev-agents.json`,
-            agentsFile: 'dev-agents.json',
-            dot: 'var(--accent-dev)',
-          },
-        ],
-      },
+      { label: '에이전트', href: `${ROOT}pages/agents.html`, dot: 'var(--border)' },
       { label: '파이프라인', href: `${ROOT}index.html`,         dot: 'var(--border)' },
       { label: '프롬프트',  href: `${ROOT}pages/prompts.html`, dot: 'var(--border)' },
     ],
