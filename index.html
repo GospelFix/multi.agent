@@ -60,6 +60,35 @@
         </div>
       </div>
 
+      <!-- 이미지 → 프롬프트 변환 카드 -->
+      <div class="card img-prompt-card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">이미지 분석</div>
+            <div class="card-subtitle">이미지를 업로드하면 Claude가 분석해 프로젝트 요청에 자동 입력합니다</div>
+          </div>
+        </div>
+        <label class="img-drop-zone" id="img-drop-zone" for="img-file-input" role="button" tabindex="0"
+               aria-label="이미지 업로드 영역">
+          <input type="file" id="img-file-input" accept="image/*" style="display:none" aria-hidden="true" />
+          <div class="img-drop-idle" id="img-drop-idle">
+            <span class="img-drop-icon">🖼</span>
+            <span class="img-drop-text">클릭하거나 이미지를 드래그해서 올려주세요</span>
+            <span class="img-drop-hint">JPG · PNG · WEBP · GIF</span>
+          </div>
+          <div class="img-preview-wrap" id="img-preview-wrap" style="display:none">
+            <img class="img-preview-thumb" id="img-preview-thumb" alt="업로드된 이미지 미리보기" />
+            <button class="img-remove-btn" id="img-remove-btn" type="button" aria-label="이미지 제거">✕</button>
+          </div>
+        </label>
+        <div class="img-analyze-row">
+          <button class="btn btn-primary btn-sm" id="img-analyze-btn" disabled aria-label="이미지 분석 실행">
+            ✦ 분석해서 프롬프트 생성
+          </button>
+          <span class="img-analyze-status" id="img-analyze-status"></span>
+        </div>
+      </div>
+
       <!-- 프로젝트 요청 입력 카드 -->
       <div class="card user-input-card">
         <div class="card-header">
@@ -67,6 +96,9 @@
             <div class="card-title">프로젝트 요청</div>
             <div class="card-subtitle">{{user_input}} 변수로 에이전트 프롬프트에서 참조됩니다</div>
           </div>
+          <button class="btn btn-ghost btn-sm" id="load-sample-btn" aria-label="샘플 데이터 불러오기">
+            샘플 데이터
+          </button>
         </div>
         <textarea id="user-input-area" class="user-input-textarea"
           placeholder="마케팅 프로젝트 요청을 입력하세요...&#10;예) 해남 꿀고구마 스마트스토어 론칭 캠페인. 30~40대 주부 타겟, 봄 시즌 SNS 광고 집행 예정."

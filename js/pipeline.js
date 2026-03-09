@@ -12,6 +12,19 @@ let outputsData = [];
 let currentRunIndex = 0; // 현재 선택된 실행 탭 인덱스
 let isRunning = false;
 
+/* ─── 테스트용 샘플 데이터 ─── */
+const SAMPLE_DATA = {
+  userInput: '해남 꿀고구마 스마트스토어 론칭 캠페인. 30~40대 건강을 챙기는 주부 타겟, 봄 시즌(3~5월) SNS 광고 집행 예정. 예산 500만원, 인스타그램·카카오 채널 중심. 자연산 무농약 강조, 산지 직송 스토리 활용.',
+  brandInfo: {
+    brandName: '해남 꿀고구마',
+    slogan: '해남에서 온 달콤한 선물',
+    brandColors: '브라운(#8B4513), 크림(#FFF8F0), 포레스트그린(#2D5016)',
+    toneAndManner: '따뜻함, 신뢰, 자연, 가족 친화적, 정직한',
+    targetAudience: '30~40대 건강에 관심 있는 주부, 온라인 쇼핑 경험 있는 여성',
+    competitors: '대형마트 농산물 코너, 쿠팡 로켓프레시 고구마, 타 스마트스토어 산지 채소',
+  },
+};
+
 /* ─── 직급 value → label/icon 변환 맵 ─── */
 const RANK_MAP = {
   intern:    { label: '인턴',     icon: '🔰' },
@@ -443,6 +456,139 @@ const renderOutputPreview = (outputId, agentId) => {
   }
 };
 
+/* ─── 이미지 → 프롬프트 변환 (Vision API) ─── */
+const initImageAnalyzer = () => {
+  const dropZone    = document.getElementById('img-drop-zone');
+  const fileInput   = document.getElementById('img-file-input');
+  const idleView    = document.getElementById('img-drop-idle');
+  const previewWrap = document.getElementById('img-preview-wrap');
+  const previewThumb= document.getElementById('img-preview-thumb');
+  const removeBtn   = document.getElementById('img-remove-btn');
+  const analyzeBtn  = document.getElementById('img-analyze-btn');
+  const statusEl    = document.getElementById('img-analyze-status');
+  if (!dropZone) return;
+
+  let uploadedFile = null;
+
+  /* 파일 읽어서 미리보기 표시 */
+  const loadFile = (file) => {
+    if (!file || !file.type.startsWith('image/')) return;
+    uploadedFile = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      previewThumb.src = e.target.result;
+      idleView.style.display = 'none';
+      previewWrap.style.display = 'block';
+      analyzeBtn.disabled = false;
+      statusEl.textContent = '';
+    };
+    reader.readAsDataURL(file);
+  };
+
+  /* 이미지 제거 */
+  removeBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    uploadedFile = null;
+    fileInput.value = '';
+    previewThumb.src = '';
+    previewWrap.style.display = 'none';
+    idleView.style.display = 'flex';
+    analyzeBtn.disabled = true;
+    statusEl.textContent = '';
+  });
+
+  /* 파일 선택 */
+  fileInput.addEventListener('change', () => loadFile(fileInput.files[0]));
+
+  /* 드래그 앤 드롭 */
+  dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    loadFile(e.dataTransfer.files[0]);
+  });
+
+  /* 키보드 접근성 */
+  dropZone.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') fileInput.click();
+  });
+
+  /* 분석 버튼 → Vision API 호출 */
+  analyzeBtn.addEventListener('click', async () => {
+    if (!uploadedFile) return;
+    const apiKey = Store.get().apiKey;
+    if (!apiKey) {
+      statusEl.textContent = '⚠ API 키를 먼저 입력해주세요';
+      statusEl.style.color = 'var(--accent-pipe)';
+      return;
+    }
+
+    analyzeBtn.disabled = true;
+    statusEl.style.color = 'var(--text-dim)';
+    statusEl.textContent = '분석 중...';
+
+    try {
+      /* 이미지를 base64로 변환 */
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          /* data:image/jpeg;base64,XXXX → XXXX 만 추출 */
+          resolve(e.target.result.split(',')[1]);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(uploadedFile);
+      });
+
+      const mediaType = uploadedFile.type || 'image/jpeg';
+
+      /* Vision API 호출 */
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 1024,
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+              { type: 'text', text: '이 이미지를 마케팅 캠페인 브리프 관점에서 분석해주세요.\n\n다음 항목을 한국어로 간결하게 작성해주세요:\n- 이미지 핵심 내용 및 분위기\n- 타겟 고객 추정\n- 활용 가능한 마케팅 메시지 방향\n- 캠페인 제안\n\n결과는 프로젝트 요청서 형태로 자연스럽게 작성해주세요.' },
+            ],
+          }],
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error?.message || `API ${res.status}`);
+      }
+      const data = await res.json();
+      const generated = data.content[0].text;
+
+      /* 프로젝트 요청 필드에 삽입 */
+      const userInputArea = document.getElementById('user-input-area');
+      if (userInputArea) {
+        userInputArea.value = generated;
+        Store.set({ userInput: generated });
+      }
+      statusEl.style.color = 'var(--accent-dev)';
+      statusEl.textContent = '✓ 프로젝트 요청에 입력됐습니다';
+    } catch (err) {
+      statusEl.style.color = 'var(--accent-pipe)';
+      statusEl.textContent = `오류: ${err.message}`;
+    } finally {
+      analyzeBtn.disabled = false;
+    }
+  });
+};
+
 /* ─── 실제 Claude API 호출 ─── */
 const callClaudeAPI = async (prompt, model, apiKey) => {
   const claudeModel = model && model.startsWith('claude') ? model : 'claude-haiku-4-5-20251001';
@@ -768,6 +914,29 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  /* 샘플 데이터 불러오기 버튼 */
+  document.getElementById('load-sample-btn')?.addEventListener('click', () => {
+    /* Store 저장 */
+    Store.set({ userInput: SAMPLE_DATA.userInput, brandInfo: SAMPLE_DATA.brandInfo });
+
+    /* DOM 동기화 — 프로젝트 요청 */
+    if (userInputArea) userInputArea.value = SAMPLE_DATA.userInput;
+
+    /* DOM 동기화 — 브랜드 필드 */
+    brandFields.forEach(({ id, key }) => {
+      const el = document.getElementById(id);
+      if (el) el.value = SAMPLE_DATA.brandInfo[key] || '';
+    });
+
+    /* 클라이언트 정보 카드 자동 펼치기 */
+    const body = document.getElementById('brand-info-body');
+    const toggle = document.getElementById('brand-info-toggle');
+    if (body && body.style.display === 'none') {
+      body.style.display = 'block';
+      if (toggle) { toggle.textContent = '접기 ▴'; toggle.setAttribute('aria-expanded', 'true'); }
+    }
+  });
+
   /* 브랜드 가이드라인 카드 펼치기/접기 토글 */
   const toggleBtn = document.getElementById('brand-info-toggle');
   const brandBody = document.getElementById('brand-info-body');
@@ -779,6 +948,9 @@ document.addEventListener('DOMContentLoaded', () => {
       toggleBtn.setAttribute('aria-expanded', String(!isOpen));
     });
   }
+
+  /* 이미지 분석 초기화 */
+  initImageAnalyzer();
 
   /* API 키 UI 초기화 */
   updateApiKeyUI();

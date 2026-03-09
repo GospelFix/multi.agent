@@ -33,12 +33,12 @@ const PROVIDER_MODELS = {
 
 /* ─── 직급 옵션 (토큰 제한 포함) ─── */
 const RANK_OPTIONS = [
-  { value: 'intern',     label: '인턴',     icon: '🔰', tokenLimit: 500,   colorVar: '--text-dim' },
-  { value: 'junior',     label: '신입사원', icon: '🌱', tokenLimit: 1000,  colorVar: '--accent-dev' },
-  { value: 'associate',  label: '대리',     icon: '🖥',  tokenLimit: 2000,  colorVar: '--accent-design' },
-  { value: 'manager',    label: '과장',     icon: '⭐', tokenLimit: 4000,  colorVar: '--accent-pm' },
-  { value: 'lead',       label: '팀장',     icon: '👑', tokenLimit: 8000,  colorVar: '--accent-qa' },
-  { value: 'director',   label: '부장',     icon: '🏆', tokenLimit: null,  colorVar: '--accent-pipe' },
+  { value: 'intern',     label: '인턴',     icon: '🔰', tokenLimit: 500,   colorVar: '--text-dim',      desc: '짧은 초안 · 단순 요약 · 빠른 응답' },
+  { value: 'junior',     label: '신입사원', icon: '🌱', tokenLimit: 1000,  colorVar: '--accent-dev',    desc: '단락 수준 카피 · 기본 분석 보고서' },
+  { value: 'associate',  label: '대리',     icon: '🖥',  tokenLimit: 2000,  colorVar: '--accent-design', desc: '1~2페이지 전략서 · 상세 카피 덱' },
+  { value: 'manager',    label: '과장',     icon: '⭐', tokenLimit: 4000,  colorVar: '--accent-pm',     desc: '멀티 섹션 보고서 · 완성도 높은 브리프' },
+  { value: 'lead',       label: '팀장',     icon: '👑', tokenLimit: 8000,  colorVar: '--accent-qa',     desc: '장문 전략 문서 · 종합 캠페인 플랜' },
+  { value: 'director',   label: '부장',     icon: '🏆', tokenLimit: null,  colorVar: '--accent-pipe',   desc: '제한 없음 · 최대 품질 · 고비용' },
 ];
 
 /* ─── 에이전시 유형 목록 ─── */
@@ -212,10 +212,43 @@ const fetchJSON = async (url) => {
 const detectProvider = (modelValue) => {
   if (!modelValue) return 'anthropic';
   if (modelValue.startsWith('claude'))  return 'anthropic';
-  if (modelValue.startsWith('gemini'))  return 'google';
-  if (modelValue.startsWith('codex'))   return 'codex';
   if (modelValue.startsWith('gpt') || modelValue.startsWith('o1') || modelValue.startsWith('o3')) return 'openai';
   return 'anthropic';
+};
+
+/* ─── Provider 툴팁 HTML 생성 ─── */
+const buildProviderTooltip = () => {
+  const rows = Object.values(PROVIDER_MODELS).map(p => `
+    <div class="tt-provider">
+      <div class="tt-provider-name">${p.icon} ${p.label}</div>
+      ${p.models.map(m => `
+        <div class="tt-model-row">
+          <span class="tt-model-label">${m.label}</span>
+          <span class="tt-model-desc">${m.desc}</span>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+  return `<div class="tt-header">AI Provider 안내</div>${rows}`;
+};
+
+/* ─── 직급 툴팁 HTML 생성 ─── */
+const buildRankTooltip = () => {
+  const rows = RANK_OPTIONS.map(r => {
+    const limitText = r.tokenLimit ? `${r.tokenLimit.toLocaleString()} 토큰` : '무제한';
+    return `
+      <div class="tt-model-row">
+        <span class="tt-model-label">${r.icon} ${r.label}</span>
+        <span class="tt-model-desc">${limitText}</span>
+      </div>
+      <div class="tt-rank-desc">${r.desc}</div>
+    `;
+  }).join('');
+  return `
+    <div class="tt-header">직급 & 토큰 할당</div>
+    <div class="tt-rank-intro">토큰은 AI가 한 번에 생성할 수 있는 텍스트 양입니다. 직급이 높을수록 더 긴 결과물을 생성하지만 API 비용이 증가합니다.</div>
+    ${rows}
+  `;
 };
 
 /* ─── 직급 라벨 → value 변환 ─── */
@@ -293,9 +326,6 @@ const renderEditPanel = (agentId) => {
   const currentModel    = override.model      || agent.model;
   const currentProvider = override.provider   || detectProvider(currentModel);
   const currentRank     = override.rank       || rankLabelToValue(agent.rank);
-  const currentPrompt   = override.systemPrompt != null ? override.systemPrompt : (agent.systemPrompt || '');
-  const currentApiKey   = override.apiKey     || '';
-
   /* Provider 옵션 HTML */
   const providerOptionsHTML = Object.entries(PROVIDER_MODELS).map(([key, p]) => `
     <option value="${key}"${currentProvider === key ? ' selected' : ''}>${p.icon} ${p.label}</option>
@@ -329,7 +359,13 @@ const renderEditPanel = (agentId) => {
         <div class="panel-section-title">AI 설정</div>
 
         <div class="form-group">
-          <label class="form-label" for="provider-select">Provider</label>
+          <div class="form-label-row">
+            <label class="form-label" for="provider-select">Provider</label>
+            <span class="tooltip-wrap" aria-label="Provider 안내">
+              <span class="tooltip-icon" tabindex="0">?</span>
+              <div class="tooltip-popup" role="tooltip">${buildProviderTooltip()}</div>
+            </span>
+          </div>
           <select class="form-select" id="provider-select" aria-label="AI 제공자 선택">
             ${providerOptionsHTML}
           </select>
@@ -350,7 +386,13 @@ const renderEditPanel = (agentId) => {
         <div class="panel-section-title">직급 & 토큰 제한</div>
 
         <div class="form-group">
-          <label class="form-label" for="rank-select">직급</label>
+          <div class="form-label-row">
+            <label class="form-label" for="rank-select">직급</label>
+            <span class="tooltip-wrap" aria-label="직급 안내">
+              <span class="tooltip-icon" tabindex="0">?</span>
+              <div class="tooltip-popup" role="tooltip">${buildRankTooltip()}</div>
+            </span>
+          </div>
           <select class="form-select" id="rank-select" aria-label="직급 선택">
             ${rankOptionsHTML}
           </select>
@@ -359,50 +401,6 @@ const renderEditPanel = (agentId) => {
         <!-- 토큰 제한 뱃지 -->
         <div class="rank-token-display" id="rank-token-display">
           ${buildRankTokenDisplay(rankOption)}
-        </div>
-      </div>
-
-      <!-- ④ System Prompt -->
-      <div class="panel-section">
-        <div class="panel-section-title">System Prompt</div>
-        <div class="form-group">
-          <div class="form-label-row">
-            <label class="form-label" for="system-prompt-input">시스템 프롬프트</label>
-            <span class="form-token-count" id="prompt-token-count">${estimateTokens(currentPrompt)} 토큰</span>
-          </div>
-          <textarea
-            class="form-textarea"
-            id="system-prompt-input"
-            rows="6"
-            placeholder="에이전트의 역할과 지시사항을 작성하세요..."
-            aria-label="시스템 프롬프트"
-            spellcheck="false"
-          >${currentPrompt}</textarea>
-        </div>
-      </div>
-
-      <!-- ⑤ API Key (선택) -->
-      <div class="panel-section">
-        <div class="panel-section-title">API Key <span class="optional-label">선택사항</span></div>
-        <div class="form-group">
-          <label class="form-label" for="api-key-input">API Key</label>
-          <div class="api-key-wrap">
-            <input
-              type="password"
-              class="form-input api-key-input"
-              id="api-key-input"
-              placeholder="sk-... 또는 AIza..."
-              value="${currentApiKey}"
-              aria-label="API Key 입력"
-              autocomplete="off"
-            >
-            <button class="api-key-toggle" id="api-key-toggle" type="button" aria-label="API Key 표시/숨기기">
-              👁
-            </button>
-          </div>
-          <div class="form-hint form-hint-warn">
-            ⚠ localStorage에 저장됩니다. 프로덕션 환경에서는 환경변수를 사용하세요.
-          </div>
         </div>
       </div>
 
@@ -436,22 +434,6 @@ const renderEditPanel = (agentId) => {
     const selectedRank = RANK_OPTIONS.find(r => r.value === e.target.value);
     const display = panel.querySelector('#rank-token-display');
     if (selectedRank && display) display.innerHTML = buildRankTokenDisplay(selectedRank);
-  });
-
-  /* System Prompt → 토큰 추정 실시간 갱신 */
-  panel.querySelector('#system-prompt-input').addEventListener('input', (e) => {
-    const countEl = panel.querySelector('#prompt-token-count');
-    if (countEl) countEl.textContent = `${estimateTokens(e.target.value)} 토큰`;
-  });
-
-  /* API Key 표시/숨기기 토글 */
-  panel.querySelector('#api-key-toggle').addEventListener('click', () => {
-    const input = panel.querySelector('#api-key-input');
-    const btn = panel.querySelector('#api-key-toggle');
-    const isHidden = input.type === 'password';
-    input.type = isHidden ? 'text' : 'password';
-    btn.textContent = isHidden ? '🙈' : '👁';
-    btn.setAttribute('aria-label', isHidden ? 'API Key 숨기기' : 'API Key 표시');
   });
 
   /* 저장 */
@@ -526,17 +508,12 @@ const saveAgent = (agentId) => {
   const providerSelect = document.getElementById('provider-select');
   const modelSelect    = document.getElementById('model-select');
   const rankSelect     = document.getElementById('rank-select');
-  const promptInput    = document.getElementById('system-prompt-input');
-  const apiKeyInput    = document.getElementById('api-key-input');
-
-  if (!providerSelect || !modelSelect || !rankSelect || !promptInput) return;
+  if (!providerSelect || !modelSelect || !rankSelect) return;
 
   Store.setAgentOverride(agentId, {
     provider:     providerSelect.value,
     model:        modelSelect.value,
     rank:         rankSelect.value,
-    systemPrompt: promptInput.value,
-    apiKey:       apiKeyInput ? apiKeyInput.value : '',
   });
 
   renderAgentList();
@@ -559,4 +536,57 @@ const showToast = (message) => {
   }, 2500);
 };
 
-document.addEventListener('DOMContentLoaded', init);
+/* ─── 전역 툴팁 오버레이 (overflow 클리핑 우회) ─── */
+const initGlobalTooltip = () => {
+  const overlay = document.createElement('div');
+  overlay.id = 'tt-overlay';
+  document.body.appendChild(overlay);
+
+  /* 패널이 렌더링될 때마다 .tooltip-icon에 이벤트 위임 */
+  document.addEventListener('mouseenter', (e) => {
+    const icon = e.target.closest('.tooltip-icon');
+    if (!icon) return;
+    const popup = icon.parentElement?.querySelector('.tooltip-popup');
+    if (!popup) return;
+
+    overlay.innerHTML = popup.innerHTML;
+
+    const rect = icon.getBoundingClientRect();
+    const overlayW = 260;
+    const gap = 8;
+
+    /* 기본: 아이콘 아래 오른쪽 정렬 */
+    let top  = rect.bottom + gap;
+    let left = rect.right - overlayW;
+
+    /* 뷰포트 하단 벗어나면 위로 */
+    if (top + 300 > window.innerHeight) top = rect.top - gap - 300;
+    /* 뷰포트 왼쪽 벗어나면 보정 */
+    if (left < 8) left = 8;
+
+    overlay.style.top  = `${top}px`;
+    overlay.style.left = `${left}px`;
+    overlay.classList.add('visible');
+  }, true);
+
+  document.addEventListener('mouseleave', (e) => {
+    if (e.target.closest('.tooltip-icon')) {
+      overlay.classList.remove('visible');
+    }
+  }, true);
+
+  /* 포커스 접근성 */
+  document.addEventListener('focusin', (e) => {
+    const icon = e.target.closest('.tooltip-icon');
+    if (!icon) return;
+    icon.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+  });
+  document.addEventListener('focusout', (e) => {
+    if (e.target.closest('.tooltip-icon')) overlay.classList.remove('visible');
+  });
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  init();
+  initGlobalTooltip();
+});
