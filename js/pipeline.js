@@ -456,140 +456,16 @@ const renderOutputPreview = (outputId, agentId) => {
   }
 };
 
-/* ─── 이미지 → 프롬프트 변환 (Vision API) ─── */
-const initImageAnalyzer = () => {
-  const dropZone    = document.getElementById('img-drop-zone');
-  const fileInput   = document.getElementById('img-file-input');
-  const idleView    = document.getElementById('img-drop-idle');
-  const previewWrap = document.getElementById('img-preview-wrap');
-  const previewThumb= document.getElementById('img-preview-thumb');
-  const removeBtn   = document.getElementById('img-remove-btn');
-  const analyzeBtn  = document.getElementById('img-analyze-btn');
-  const statusEl    = document.getElementById('img-analyze-status');
-  if (!dropZone) return;
 
-  let uploadedFile = null;
-
-  /* 파일 읽어서 미리보기 표시 */
-  const loadFile = (file) => {
-    if (!file || !file.type.startsWith('image/')) return;
-    uploadedFile = file;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      previewThumb.src = e.target.result;
-      idleView.style.display = 'none';
-      previewWrap.style.display = 'block';
-      analyzeBtn.disabled = false;
-      statusEl.textContent = '';
-    };
-    reader.readAsDataURL(file);
-  };
-
-  /* 이미지 제거 */
-  removeBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    uploadedFile = null;
-    fileInput.value = '';
-    previewThumb.src = '';
-    previewWrap.style.display = 'none';
-    idleView.style.display = 'flex';
-    analyzeBtn.disabled = true;
-    statusEl.textContent = '';
-  });
-
-  /* 파일 선택 */
-  fileInput.addEventListener('change', () => loadFile(fileInput.files[0]));
-
-  /* 드래그 앤 드롭 */
-  dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-  dropZone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropZone.classList.remove('drag-over');
-    loadFile(e.dataTransfer.files[0]);
-  });
-
-  /* 키보드 접근성 */
-  dropZone.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') fileInput.click();
-  });
-
-  /* 분석 버튼 → Vision API 호출 */
-  analyzeBtn.addEventListener('click', async () => {
-    if (!uploadedFile) return;
-    const apiKey = Store.get().apiKey;
-    if (!apiKey) {
-      statusEl.textContent = '⚠ API 키를 먼저 입력해주세요';
-      statusEl.style.color = 'var(--accent-pipe)';
-      return;
-    }
-
-    analyzeBtn.disabled = true;
-    statusEl.style.color = 'var(--text-dim)';
-    statusEl.textContent = '분석 중...';
-
-    try {
-      /* 이미지를 base64로 변환 */
-      const base64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          /* data:image/jpeg;base64,XXXX → XXXX 만 추출 */
-          resolve(e.target.result.split(',')[1]);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(uploadedFile);
-      });
-
-      const mediaType = uploadedFile.type || 'image/jpeg';
-
-      /* Vision API 호출 */
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true',
-        },
-        body: JSON.stringify({
-          model: 'claude-haiku-4-5-20251001',
-          max_tokens: 1024,
-          messages: [{
-            role: 'user',
-            content: [
-              { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
-              { type: 'text', text: '이 이미지를 마케팅 캠페인 브리프 관점에서 분석해주세요.\n\n다음 항목을 한국어로 간결하게 작성해주세요:\n- 이미지 핵심 내용 및 분위기\n- 타겟 고객 추정\n- 활용 가능한 마케팅 메시지 방향\n- 캠페인 제안\n\n결과는 프로젝트 요청서 형태로 자연스럽게 작성해주세요.' },
-            ],
-          }],
-        }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error?.message || `API ${res.status}`);
-      }
-      const data = await res.json();
-      const generated = data.content[0].text;
-
-      /* 프로젝트 요청 필드에 삽입 */
-      const userInputArea = document.getElementById('user-input-area');
-      if (userInputArea) {
-        userInputArea.value = generated;
-        Store.set({ userInput: generated });
-      }
-      statusEl.style.color = 'var(--accent-dev)';
-      statusEl.textContent = '✓ 프로젝트 요청에 입력됐습니다';
-    } catch (err) {
-      statusEl.style.color = 'var(--accent-pipe)';
-      statusEl.textContent = `오류: ${err.message}`;
-    } finally {
-      analyzeBtn.disabled = false;
-    }
-  });
+/* ─── 프로바이더 감지 (키 prefix 기반) ─── */
+const detectProvider = (apiKey) => {
+  if (!apiKey) return null;
+  if (apiKey.startsWith('sk-ant-')) return 'claude';
+  if (apiKey.startsWith('sk-')) return 'openai';
+  return null;
 };
 
-/* ─── 실제 Claude API 호출 ─── */
+/* ─── Claude API 호출 ─── */
 const callClaudeAPI = async (prompt, model, apiKey) => {
   const claudeModel = model && model.startsWith('claude') ? model : 'claude-haiku-4-5-20251001';
   const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -615,6 +491,39 @@ const callClaudeAPI = async (prompt, model, apiKey) => {
     text:   data.content[0].text,
     tokens: (data.usage.input_tokens || 0) + (data.usage.output_tokens || 0),
   };
+};
+
+/* ─── OpenAI API 호출 ─── */
+const callOpenAIAPI = async (prompt, model, apiKey) => {
+  const openaiModel = model && model.startsWith('gpt') ? model : 'gpt-4o-mini';
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: openaiModel,
+      max_tokens: 2048,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message || `API ${res.status}`);
+  }
+  const data = await res.json();
+  return {
+    text:   data.choices[0].message.content,
+    tokens: (data.usage.prompt_tokens || 0) + (data.usage.completion_tokens || 0),
+  };
+};
+
+/* ─── 프로바이더에 따라 올바른 API 호출 ─── */
+const callAI = async (prompt, model, apiKey) => {
+  const provider = detectProvider(apiKey);
+  if (provider === 'openai') return callOpenAIAPI(prompt, model, apiKey);
+  return callClaudeAPI(prompt, model, apiKey);
 };
 
 /* ─── 입력값 기반 템플릿 아웃풋 (API 키 없을 때) ─── */
@@ -761,7 +670,7 @@ const simulateRun = async (startAgentId) => {
     if (apiKey) {
       /* ── 실제 AI 생성 ── */
       try {
-        const result    = await callClaudeAPI(resolvedPrompt, agent.model, apiKey);
+        const result    = await callAI(resolvedPrompt, agent.model, apiKey);
         generatedContent = result.text;
         tokens           = result.tokens;
       } catch (err) {
@@ -949,9 +858,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  /* 이미지 분석 초기화 */
-  initImageAnalyzer();
-
   /* API 키 UI 초기화 */
   updateApiKeyUI();
 
@@ -960,6 +866,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const input = document.getElementById('api-key-input');
     if (!input) return;
     const key = input.value.trim();
+    /* 지원하는 프로바이더 키 형식 검사 */
+    if (key && !detectProvider(key)) {
+      alert('지원하지 않는 API 키 형식입니다.\n- Claude: sk-ant-api03-...\n- OpenAI: sk-...');
+      return;
+    }
     Store.set({ apiKey: key });
     updateApiKeyUI();
     input.value = '';
@@ -977,12 +888,15 @@ const updateApiKeyUI = () => {
   const statusEl   = document.getElementById('api-key-status');
   const clearBtn   = document.getElementById('api-key-clear-btn');
   const inputEl    = document.getElementById('api-key-input');
-  const hasKey     = !!(Store.get().apiKey);
+  const apiKey     = Store.get().apiKey || '';
+  const hasKey     = !!apiKey;
+  const provider   = detectProvider(apiKey);
+  const providerLabel = provider === 'openai' ? 'OpenAI' : 'Claude';
 
   if (statusEl) {
     statusEl.className = `api-key-status ${hasKey ? 'connected' : 'disconnected'}`;
-    statusEl.textContent = hasKey ? '● AI 연결됨' : '○ 미연결 (목업 모드)';
+    statusEl.textContent = hasKey ? `● ${providerLabel} 연결됨` : '○ 미연결 (목업 모드)';
   }
   if (clearBtn) clearBtn.style.display = hasKey ? 'inline-flex' : 'none';
-  if (inputEl)  inputEl.placeholder    = hasKey ? '새 키로 교체하려면 입력...' : 'sk-ant-api03-...';
+  if (inputEl)  inputEl.placeholder    = hasKey ? '새 키로 교체하려면 입력...' : 'sk-ant-... 또는 sk-...';
 };

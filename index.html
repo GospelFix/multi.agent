@@ -48,46 +48,18 @@
         <div class="card-header">
           <div>
             <div class="card-title">AI 연결 설정</div>
-            <div class="card-subtitle">Anthropic API 키 입력 시 실제 AI가 결과물을 생성합니다</div>
+            <div class="card-subtitle">Claude(sk-ant-...) 또는 OpenAI(sk-...) API 키를 입력하면 실제 AI가 결과물을 생성합니다</div>
           </div>
           <div class="api-key-status" id="api-key-status"></div>
         </div>
         <div class="api-key-row">
           <input type="password" id="api-key-input" class="brand-input api-key-input"
-            placeholder="sk-ant-api03-..." aria-label="Anthropic API 키 입력" autocomplete="off" />
+            placeholder="sk-ant-api03-... 또는 sk-..." aria-label="Claude 또는 OpenAI API 키 입력" autocomplete="off" />
           <button class="btn btn-primary btn-sm" id="api-key-save-btn" aria-label="API 키 저장">저장</button>
           <button class="btn btn-ghost btn-sm" id="api-key-clear-btn" aria-label="API 키 삭제" style="display:none">삭제</button>
         </div>
       </div>
 
-      <!-- 이미지 → 프롬프트 변환 카드 -->
-      <div class="card img-prompt-card">
-        <div class="card-header">
-          <div>
-            <div class="card-title">이미지 분석</div>
-            <div class="card-subtitle">이미지를 업로드하면 Claude가 분석해 프로젝트 요청에 자동 입력합니다</div>
-          </div>
-        </div>
-        <label class="img-drop-zone" id="img-drop-zone" for="img-file-input" role="button" tabindex="0"
-               aria-label="이미지 업로드 영역">
-          <input type="file" id="img-file-input" accept="image/*" style="display:none" aria-hidden="true" />
-          <div class="img-drop-idle" id="img-drop-idle">
-            <span class="img-drop-icon">🖼</span>
-            <span class="img-drop-text">클릭하거나 이미지를 드래그해서 올려주세요</span>
-            <span class="img-drop-hint">JPG · PNG · WEBP · GIF</span>
-          </div>
-          <div class="img-preview-wrap" id="img-preview-wrap" style="display:none">
-            <img class="img-preview-thumb" id="img-preview-thumb" alt="업로드된 이미지 미리보기" />
-            <button class="img-remove-btn" id="img-remove-btn" type="button" aria-label="이미지 제거">✕</button>
-          </div>
-        </label>
-        <div class="img-analyze-row">
-          <button class="btn btn-primary btn-sm" id="img-analyze-btn" disabled aria-label="이미지 분석 실행">
-            ✦ 분석해서 프롬프트 생성
-          </button>
-          <span class="img-analyze-status" id="img-analyze-status"></span>
-        </div>
-      </div>
 
       <!-- 프로젝트 요청 입력 카드 -->
       <div class="card user-input-card">

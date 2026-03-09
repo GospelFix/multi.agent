@@ -216,6 +216,16 @@ const detectProvider = (modelValue) => {
   return 'anthropic';
 };
 
+/* ─── 저장된 API 키 prefix로 허용 프로바이더 반환 ─── */
+/* null = 제한 없음 (키 미입력), 'anthropic' | 'openai' = 해당 프로바이더만 허용 */
+const getAllowedProviderFromKey = () => {
+  const apiKey = Store.get().apiKey || '';
+  if (!apiKey) return null;
+  if (apiKey.startsWith('sk-ant-')) return 'anthropic';
+  if (apiKey.startsWith('sk-'))    return 'openai';
+  return null;
+};
+
 /* ─── Provider 툴팁 HTML 생성 ─── */
 const buildProviderTooltip = () => {
   const rows = Object.values(PROVIDER_MODELS).map(p => `
@@ -324,15 +334,21 @@ const renderEditPanel = (agentId) => {
 
   /* 현재 값 결정 */
   const currentModel    = override.model      || agent.model;
-  const currentProvider = override.provider   || detectProvider(currentModel);
   const currentRank     = override.rank       || rankLabelToValue(agent.rank);
-  /* Provider 옵션 HTML */
-  const providerOptionsHTML = Object.entries(PROVIDER_MODELS).map(([key, p]) => `
-    <option value="${key}"${currentProvider === key ? ' selected' : ''}>${p.icon} ${p.label}</option>
-  `).join('');
 
-  /* 현재 Provider의 Model 옵션 HTML */
-  const modelOptionsHTML = buildModelOptions(currentProvider, currentModel);
+  /* API 키 prefix로 허용 프로바이더 결정 → 키가 있으면 강제, 없으면 오버라이드/모델값 사용 */
+  const allowedProvider = getAllowedProviderFromKey();
+  const effectiveProvider = allowedProvider || override.provider || detectProvider(currentModel);
+
+  /* Provider 옵션 HTML — API 키가 있으면 해당 프로바이더만 표시 */
+  const providerOptionsHTML = Object.entries(PROVIDER_MODELS)
+    .filter(([key]) => !allowedProvider || key === allowedProvider)
+    .map(([key, p]) => `
+      <option value="${key}"${effectiveProvider === key ? ' selected' : ''}>${p.icon} ${p.label}</option>
+    `).join('');
+
+  /* 유효 프로바이더의 Model 옵션만 표시 */
+  const modelOptionsHTML = buildModelOptions(effectiveProvider, currentModel);
 
   /* 직급 옵션 HTML */
   const rankOptionsHTML = RANK_OPTIONS.map(r => `
@@ -377,7 +393,7 @@ const renderEditPanel = (agentId) => {
           <select class="form-select" id="model-select" aria-label="모델 선택">
             ${modelOptionsHTML}
           </select>
-          <div class="form-hint" id="model-hint">${getModelHint(currentProvider, currentModel)}</div>
+          <div class="form-hint" id="model-hint">${getModelHint(effectiveProvider, currentModel)}</div>
         </div>
       </div>
 
