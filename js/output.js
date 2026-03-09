@@ -271,20 +271,26 @@ const downloadRunZip = async (runId, btnEl) => {
 
   try {
     const zip = new JSZip();
+    /* ZIP 내부 폴더명: run.id는 항상 alphanumeric+hyphen 형식 보장 */
+    const folderName = runId;
+    const folder = zip.folder(folderName);
 
     runOutputs.forEach(output => {
       const agent = agentsData.find(a => a.id === output.agentId);
       const content = agent
         ? buildFrontmatter(output, agent) + output.content
         : output.content;
-      zip.file(`${output.fileName}.md`, content);
+      folder.file(`${output.fileName}.md`, content);
     });
+
+    /* SKILL.md 생성 후 최상위 폴더에 포함 */
+    folder.file('SKILL.md', buildSkillMd(run, runOutputs));
 
     const blob = await zip.generateAsync({ type: 'blob' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${run.label.replace(/\s/g, '_')}_${runId}.zip`;
+    link.download = `${folderName}.zip`;
     link.style.display = 'none';
     document.body.appendChild(link);
     link.click();
@@ -309,6 +315,47 @@ const buildFrontmatter = (output, agent) => {
     `model: ${agent.model}`,
     '---',
     '',
+  ].join('\n');
+};
+
+/** ZIP에 포함될 SKILL.md 인덱스 파일 생성 */
+const buildSkillMd = (run, runOutputs) => {
+  const skillEntries = runOutputs.map(output => {
+    const agent = agentsData.find(a => a.id === output.agentId);
+    return [
+      `### ${output.fileName}`,
+      '',
+      '```yaml',
+      `name: ${output.fileName}`,
+      `label: ${output.label}`,
+      `agent: ${output.agentId}`,
+      `description: ${agent ? agent.desc : output.label}`,
+      `model: ${agent ? agent.model : ''}`,
+      `file: ${output.fileName}.md`,
+      '```',
+    ].join('\n');
+  }).join('\n\n');
+
+  /* run.id = 'run-001' 또는 'run-1741510000000' — 항상 유효한 문자만 포함 */
+  const pkgName = run.id;
+  const today = new Date().toISOString().split('T')[0];
+
+  return [
+    '---',
+    `name: ${pkgName}`,
+    `description: ${run.label} 파이프라인 실행 결과물 패키지`,
+    `generated: ${today}`,
+    '---',
+    '',
+    `# SKILL.md — ${run.label}`,
+    '',
+    '> 이 파일은 자동 생성된 스킬 인덱스입니다.',
+    '',
+    '---',
+    '',
+    '## Skills',
+    '',
+    skillEntries,
   ].join('\n');
 };
 

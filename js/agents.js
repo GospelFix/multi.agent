@@ -20,15 +20,6 @@ const PROVIDER_MODELS = {
       { value: 'claude-opus-4-6',   label: 'Claude Opus 4.6',   desc: '최고성능 · 고비용' },
     ],
   },
-  google: {
-    label: 'Google',
-    icon: '✦',
-    models: [
-      { value: 'gemini-2.0-flash',  label: 'Gemini 2.0 Flash',  desc: '빠름 · 멀티모달' },
-      { value: 'gemini-1.5-pro',    label: 'Gemini 1.5 Pro',    desc: '고성능 · 긴 컨텍스트' },
-      { value: 'gemini-1.5-flash',  label: 'Gemini 1.5 Flash',  desc: '경량 · 저비용' },
-    ],
-  },
   openai: {
     label: 'OpenAI',
     icon: '◆',
@@ -37,14 +28,7 @@ const PROVIDER_MODELS = {
       { value: 'gpt-4o-mini', label: 'GPT-4o Mini', desc: '경량 · 저비용' },
       { value: 'o1-mini',     label: 'O1 Mini',     desc: '추론 특화' },
     ],
-  },
-  codex: {
-    label: 'OpenAI Codex',
-    icon: '⌨',
-    models: [
-      { value: 'codex-mini-latest', label: 'Codex Mini', desc: '코드 생성 특화' },
-    ],
-  },
+  }
 };
 
 /* ─── 직급 옵션 (토큰 제한 포함) ─── */
