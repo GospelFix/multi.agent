@@ -29,7 +29,7 @@
   color: var(--text-dim);
   font-size: 9px;
   font-weight: 700;
-  cursor: default;
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;

@@ -234,7 +234,7 @@
   color: var(--text-dim);
   font-size: 9px;
   font-family: var(--font-mono);
-  cursor: default;
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
