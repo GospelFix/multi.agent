@@ -858,6 +858,39 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  /* 전역 툴팁 오버레이 초기화 (agents.js와 동일 패턴, 중복 방지) */
+  if (!document.getElementById('tt-overlay')) {
+    const overlay = document.createElement('div');
+    overlay.id = 'tt-overlay';
+    document.body.appendChild(overlay);
+
+    /* 클릭으로 툴팁 토글 */
+    document.addEventListener('click', (e) => {
+      const icon = e.target.closest('.tooltip-icon');
+      if (icon) {
+        const popup = icon.parentElement?.querySelector('.tooltip-popup');
+        if (!popup) return;
+        /* 이미 열려있으면 닫기 */
+        if (overlay.classList.contains('visible')) {
+          overlay.classList.remove('visible');
+          return;
+        }
+        overlay.innerHTML = popup.innerHTML;
+        const rect = icon.getBoundingClientRect();
+        const overlayW = 260;
+        let left = rect.left + rect.width / 2 - overlayW / 2;
+        left = Math.max(8, Math.min(left, window.innerWidth - overlayW - 8));
+        overlay.style.top  = `${rect.bottom + 6}px`;
+        overlay.style.left = `${left}px`;
+        overlay.classList.add('visible');
+        e.stopPropagation();
+      } else if (!e.target.closest('#tt-overlay')) {
+        /* 툴팁 오버레이 외부 클릭 시 닫기 */
+        overlay.classList.remove('visible');
+      }
+    });
+  }
+
   /* API 키 UI 초기화 */
   updateApiKeyUI();
 
@@ -899,4 +932,21 @@ const updateApiKeyUI = () => {
   }
   if (clearBtn) clearBtn.style.display = hasKey ? 'inline-flex' : 'none';
   if (inputEl)  inputEl.placeholder    = hasKey ? '새 키로 교체하려면 입력...' : 'sk-ant-... 또는 sk-...';
+
+  /* 발급 링크 행 업데이트 */
+  const linkRow = document.getElementById('api-key-link-row');
+  const linkEl  = document.getElementById('api-key-link');
+  if (linkRow && linkEl) {
+    if (hasKey && provider) {
+      const hrefs = {
+        claude: 'https://console.anthropic.com/settings/keys',
+        openai: 'https://platform.openai.com/api-keys',
+      };
+      linkEl.href = hrefs[provider] || '#';
+      linkEl.className = `api-key-link provider-${provider}`;
+      linkRow.style.display = 'block';
+    } else {
+      linkRow.style.display = 'none';
+    }
+  }
 };

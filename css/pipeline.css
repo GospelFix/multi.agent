@@ -8,6 +8,93 @@
   margin-bottom: 12px;
 }
 
+.card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ─── 툴팁 (agents.css 미로드 환경 대응) ─── */
+.tooltip-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.tooltip-icon {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 9px;
+  font-weight: 700;
+  cursor: default;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.tooltip-icon:hover,
+.tooltip-icon:focus {
+  border-color: var(--border-bright);
+  color: var(--text);
+  outline: none;
+}
+
+.tooltip-popup {
+  display: none;
+}
+
+#tt-overlay {
+  position: fixed;
+  width: 260px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text);
+  z-index: 9999;
+  pointer-events: auto;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.1s ease, visibility 0.1s ease;
+}
+
+#tt-overlay.visible {
+  visibility: visible;
+  opacity: 1;
+}
+
+.api-key-link-row {
+  margin-top: 6px;
+  font-size: 11px;
+}
+
+.api-key-link {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.api-key-link:hover {
+  color: var(--accent-mkt);
+  text-decoration: underline;
+}
+
+/* claude provider일 때 링크 색상 */
+.api-key-link.provider-claude:hover {
+  color: #d97706;
+}
+
+/* openai provider일 때 링크 색상 */
+.api-key-link.provider-openai:hover {
+  color: #10b981;
+}
+
 .api-key-row {
   display: flex;
   gap: 8px;

@@ -47,7 +47,19 @@
       <div class="card api-key-card">
         <div class="card-header">
           <div>
-            <div class="card-title">AI 연결 설정</div>
+            <div class="card-title-row">
+              <div class="card-title">AI 연결 설정</div>
+              <span class="tooltip-wrap" aria-label="API 키 안내">
+                <span class="tooltip-icon" tabindex="0">?</span>
+                <div class="tooltip-popup" role="tooltip">
+                  <div style="font-weight:600;margin-bottom:6px">API 키 안내</div>
+                  <div style="margin-bottom:4px">🤖 <b>Claude</b> — <code>sk-ant-...</code> 형식</div>
+                  <div style="margin-bottom:8px;font-size:11px"><a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:var(--text-dim);text-decoration:underline">Anthropic Console에서 발급</a></div>
+                  <div style="margin-bottom:4px">◆ <b>OpenAI</b> — <code>sk-...</code> 형식</div>
+                  <div style="font-size:11px"><a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener" style="color:var(--text-dim);text-decoration:underline">OpenAI Platform에서 발급</a></div>
+                </div>
+              </span>
+            </div>
             <div class="card-subtitle">Claude(sk-ant-...) 또는 OpenAI(sk-...) API 키를 입력하면 실제 AI가 결과물을 생성합니다</div>
           </div>
           <div class="api-key-status" id="api-key-status"></div>
@@ -57,6 +69,9 @@
             placeholder="sk-ant-api03-... 또는 sk-..." aria-label="Claude 또는 OpenAI API 키 입력" autocomplete="off" />
           <button class="btn btn-primary btn-sm" id="api-key-save-btn" aria-label="API 키 저장">저장</button>
           <button class="btn btn-ghost btn-sm" id="api-key-clear-btn" aria-label="API 키 삭제" style="display:none">삭제</button>
+        </div>
+        <div class="api-key-link-row" id="api-key-link-row" style="display:none">
+          <a id="api-key-link" href="#" target="_blank" rel="noopener" class="api-key-link">API 키 발급하기 →</a>
         </div>
       </div>
 
