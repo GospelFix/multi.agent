@@ -100,7 +100,7 @@ const renderSidebar = () => {
   sidebar.innerHTML = `
     <div class="logo">
       <div class="logo-icon">⚡</div>
-      <div class="logo-text">Multi-agent<span class="beta-badge">BETA</span></div>
+      <div class="logo-text">llm-agent<span class="beta-badge">BETA</span></div>
       <div class="logo-sub"></div>
     </div>
     ${navHTML}
