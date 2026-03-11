@@ -23,8 +23,9 @@
 
 .editor-name-input {
   flex: 1;
-  font-size: 14px;
   font-weight: 600;
+  font-size: 12px;
+  padding: 4px;
 }
 
 /* ─── 스텝 목록 컨테이너 ─── */
@@ -290,7 +291,9 @@
 
 .add-step-btn {
   min-width: 180px;
+  width: 100%;
   border-style: dashed;
+  justify-content: center;
 }
 
 /* ─── 에이전트 풀 모달 ─── */
@@ -367,6 +370,11 @@
   text-align: left;
   transition: border-color var(--transition-fast), background var(--transition-fast);
   width: 100%;
+  margin-bottom: 10px;
+}
+
+.agent-pool-item:last-child {
+  margin-bottom: 0;
 }
 
 .agent-pool-item:hover {
@@ -414,7 +422,7 @@
   margin-bottom: 4px;
 }
 
-/* ─── 커스텀 파이프라인 활성 뱃지 (pipeline.js가 index.html에 주입) ─── */
+/* ─── 커스텀 에이전트 활성 뱃지 (pipeline.js가 index.html에 주입) ─── */
 .custom-pipeline-badge {
   display: inline-block;
   font-size: 11px;

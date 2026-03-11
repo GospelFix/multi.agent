@@ -12,9 +12,9 @@ const NAV_ITEMS = [
   {
     section: '워크스페이스',
     items: [
-      { label: '에이전트', href: `${ROOT}pages/agents.html`, dot: 'var(--border)' },
       { label: '파이프라인', href: `${ROOT}index.html`,                       dot: 'var(--border)' },
-      { label: '편집기',    href: `${ROOT}pages/pipeline-editor.html`,       dot: 'var(--border)' },
+      { label: '에이전트', href: `${ROOT}pages/agents.html`, dot: 'var(--border)' },
+      { label: '커스텀 에이전트',    href: `${ROOT}pages/pipeline-editor.html`,       dot: 'var(--border)' },
       { label: '프롬프트',  href: `${ROOT}pages/prompts.html`,               dot: 'var(--border)' },
     ],
   },
