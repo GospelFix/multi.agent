@@ -122,19 +122,65 @@ const AGENTS_FILE = (() => {
   return resolved;
 })();
 
+/* ─── 커스텀 파이프라인 뱃지 렌더링 ─── */
+const renderCustomPipelineBadge = (name) => {
+  const headerDiv = document.querySelector('.page-header > div:first-child');
+  if (!headerDiv) return;
+
+  /* 기존 뱃지 제거 후 재삽입 */
+  document.getElementById('custom-pipeline-badge')?.remove();
+
+  const badge = document.createElement('p');
+  badge.id = 'custom-pipeline-badge';
+  badge.className = 'custom-pipeline-badge';
+  badge.innerHTML = `✏️ 커스텀 파이프라인 활성 <strong>${name || '이름 없음'}</strong>
+    — <a href="./pages/pipeline-editor.html" style="color:inherit;text-decoration:underline">편집기에서 변경</a>`;
+  headerDiv.appendChild(badge);
+};
+
 /* ─── 초기화 ─── */
 const init = async () => {
   try {
-    [agentsData, historyData, outputsData] = await Promise.all([
+    const stored = Store.get();
+    const customPipeline = stored.customPipeline;
+
+    /* agents, history, outputs 병렬 로드 */
+    let [rawAgents, historyRaw, outputsRaw] = await Promise.all([
       fetchJSON(`${DATA_ROOT}${AGENTS_FILE}`).then(d => d.agents),
       fetchJSON(`${DATA_ROOT}history.json`).then(d => d.runs),
       fetchJSON(`${DATA_ROOT}outputs.json`).then(d => d.outputs),
     ]);
 
+    /* 커스텀 파이프라인이 있으면 스텝 순서대로 agentsData 재구성 */
+    if (customPipeline?.steps?.length) {
+      const agentsMap = Object.fromEntries(rawAgents.map(a => [a.id, a]));
+      agentsData = customPipeline.steps
+        .slice()
+        .sort((a, b) => a.order - b.order)
+        .map(step => {
+          const base = agentsMap[step.agentId];
+          if (!base) return null;
+          /* 편집기에서 지정한 outputFile, model, rank 오버라이드 */
+          return {
+            ...base,
+            outputFile: step.outputFile || base.outputFile,
+            ...(step.model && { model: step.model }),
+            ...(step.rank  && { rank: step.rank }),
+          };
+        })
+        .filter(Boolean);
+
+      renderCustomPipelineBadge(customPipeline.name);
+    } else {
+      agentsData = rawAgents;
+    }
+
+    historyData = historyRaw;
+    outputsData = outputsRaw;
+
     /* localStorage에 저장된 이전 생성 결과물 앞에 병합 */
-    const stored = Store.get();
-    if (stored.generatedRuns?.length)    historyData    = [...stored.generatedRuns,    ...historyData];
-    if (stored.generatedOutputs?.length) outputsData    = [...stored.generatedOutputs, ...outputsData];
+    if (stored.generatedRuns?.length)    historyData = [...stored.generatedRuns,    ...historyData];
+    if (stored.generatedOutputs?.length) outputsData = [...stored.generatedOutputs, ...outputsData];
 
     renderAll();
   } catch (e) {

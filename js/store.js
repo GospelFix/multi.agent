@@ -20,6 +20,7 @@ const Store = (() => {
     userInput: '',         // {{user_input}} 변수에 주입되는 프로젝트 요청
     generatedRuns: [],     // 실제 생성된 실행 기록 (localStorage 영속)
     generatedOutputs: [],  // 실제 생성된 아웃풋 파일 (localStorage 영속)
+    customPipeline: null,  // 커스텀 파이프라인 { id, name, steps: [{agentId, order, inputContext[], outputFile}] } | null
     brandInfo: {           // {{brand_info}} 변수에 주입되는 클라이언트 브랜드 가이드라인
       brandName: '',
       slogan: '',
