@@ -37,6 +37,7 @@
 /* ─── 설정 카드 ─── */
 .settings-card {
   max-width: 600px;
+  width: 100%;
 }
 
 /* ─── 설정 탭 패널 ─── */
@@ -243,22 +244,11 @@
 }
 
 /* ─── 파이프라인 카드 그리드 ─── */
+/* auto-fill: 컨테이너 너비에 따라 자동으로 1→2→3→4칸 전환 */
 .my-agents-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 14px;
-}
-
-@media (max-width: 1200px) {
-  .my-agents-grid { grid-template-columns: repeat(3, 1fr); }
-}
-
-@media (max-width: 860px) {
-  .my-agents-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
-@media (max-width: 560px) {
-  .my-agents-grid { grid-template-columns: 1fr; }
 }
 
 /* ─── 파이프라인 카드 ─── */
@@ -364,7 +354,7 @@
 }
 
 .ap-tag {
-  font-size: 11px;
+  font-size: 10px;
   font-family: var(--font-mono);
   color: var(--text-dim);
   border: 1px solid var(--border);
@@ -1210,4 +1200,126 @@ body.exec-bar-visible .main {
 
 #api-status-indicator.connected {
   color: var(--accent-dev);
+}
+
+/* ════════════════════════════════════════
+   반응형 — 설정 페이지
+   ════════════════════════════════════════ */
+
+/* ─── 태블릿 (≤ 860px) ─── */
+@media (max-width: 860px) {
+  /* 설정 카드: max-width 해제 → 전체 너비 */
+  .settings-card {
+    max-width: 100%;
+  }
+
+  /* 설정 섹션 설명 텍스트: max-width 해제 */
+  .settings-section-desc {
+    max-width: 100%;
+  }
+
+  /* 내 에이전트 헤더: 세로 스택 */
+  .my-agents-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  /* 실행 모달 패딩 축소 */
+  .pipeline-run-modal {
+    padding: 22px 20px 20px;
+    gap: 16px;
+  }
+}
+
+/* ─── 모바일 (≤ 600px) ─── */
+@media (max-width: 600px) {
+  /* 설정 탭: 가로 스크롤 */
+  .settings-tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+  }
+  .settings-tabs::-webkit-scrollbar { display: none; }
+
+  .settings-tab {
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  /* 내 에이전트 액션 버튼 줄 바꿈 허용 */
+  .my-agents-actions {
+    flex-wrap: wrap;
+  }
+
+  /* Provider 탭: 줄 바꿈 허용 */
+  .provider-tabs {
+    flex-wrap: wrap;
+  }
+
+  /* API 키 입력 행: 세로 스택 */
+  .api-key-row {
+    flex-wrap: wrap;
+  }
+
+  .api-key-row .btn {
+    flex-shrink: 0;
+  }
+
+  /* 출력 언어 섹션: 세로 스택 */
+  .prm-lang-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  /* 실행 모달: 여백·크기 축소 */
+  .pipeline-run-modal {
+    padding: 18px 16px 16px;
+    border-radius: 12px;
+    gap: 14px;
+  }
+
+  .pipeline-run-overlay {
+    padding: 12px;
+    align-items: flex-end;
+  }
+
+  .prm-icon {
+    width: 42px;
+    height: 42px;
+    font-size: 20px;
+  }
+
+  .prm-title {
+    font-size: 16px;
+  }
+
+  /* 하단 실행 바 칩 행 패딩 축소 */
+  .exec-bar-header {
+    padding: 8px 12px;
+  }
+
+  /* 단계 패널 패딩 축소 */
+  .exec-detail-panel {
+    padding: 12px 14px 14px;
+  }
+
+  /* 에이전트 이름 단어 단위 줄 바꿈 */
+  .es-info {
+    gap: 6px;
+  }
+
+  .es-main {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* 계정 탭 섹션 패딩 축소 */
+  .settings-section {
+    padding: 18px 16px;
+  }
 }
