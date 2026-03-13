@@ -294,14 +294,24 @@ const renderAgentList = () => {
 
   const state = Store.get();
 
+  const allowedProviders = getAllowedProviders();
+
   const listHTML = agentsData.map(agent => {
     const override = state.agentOverrides[agent.id] || {};
     const modelName = override.model || agent.model;
+    /* 오버라이드 없고 native provider 키 없으면 사용 가능한 provider로 폴백 */
+    const nativeProvider = detectProvider(modelName);
+    const resolvedProvider = override.provider ||
+      (allowedProviders && !allowedProviders.includes(nativeProvider)
+        ? allowedProviders[0]
+        : nativeProvider);
     /* 커스텀 프로바이더이고 모델명을 직접 입력한 경우 실제 모델명 표시 */
-    const displayModel = (override.provider === 'custom' && override.customModelName)
+    const displayModel = (resolvedProvider === 'custom' && override.customModelName)
       ? override.customModelName
-      : modelName;
-    const provider = PROVIDER_MODELS[override.provider || detectProvider(modelName)];
+      : (resolvedProvider !== nativeProvider
+        ? (PROVIDER_MODELS[resolvedProvider]?.models[0]?.label || modelName)
+        : modelName);
+    const provider = PROVIDER_MODELS[resolvedProvider];
     const rankValue = override.rank || rankLabelToValue(agent.rank);
     const rankOption = RANK_OPTIONS.find(r => r.value === rankValue) || RANK_OPTIONS[1];
     const tokenText = rankOption.tokenLimit ? `${rankOption.tokenLimit.toLocaleString()} 토큰 제한` : '무제한';
@@ -362,7 +372,12 @@ const renderEditPanel = (agentId) => {
 
   /* 저장된 API 키로 허용 프로바이더 결정 → 없으면 오버라이드/모델값 사용 */
   const allowedProviders  = getAllowedProviders();
-  const effectiveProvider = override.provider || detectProvider(currentModel);
+  const nativeProvider    = detectProvider(currentModel);
+  /* 오버라이드가 없고, 해당 에이전트의 native provider 키가 없으면 사용 가능한 첫 번째 provider로 폴백 */
+  const effectiveProvider = override.provider ||
+    (allowedProviders && !allowedProviders.includes(nativeProvider)
+      ? allowedProviders[0]
+      : nativeProvider);
 
   /* Provider 옵션 HTML — 키가 있으면 해당 프로바이더만 표시, 없으면 전체 표시 */
   const providerOptionsHTML = Object.entries(PROVIDER_MODELS)
