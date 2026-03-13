@@ -88,7 +88,9 @@ const renderFilePanel = () => {
     if (!runOutputs || !runOutputs.length) return '';
 
     const itemsHTML = runOutputs.map(output => {
-      const agent = agentsData.find(a => a.id === output.agentId);
+      /* run 스냅샷 우선 조회 — 실행 당시 직급이 정확히 표시됨 */
+      const agentSnapshot = run.agentsSnapshot?.find(a => a.id === output.agentId);
+      const agent = agentSnapshot || agentsData.find(a => a.id === output.agentId);
       if (!agent) return '';
 
       const isActive = output.id === activeOutputId;
@@ -156,8 +158,10 @@ const renderContentViewer = (outputId) => {
     return;
   }
 
-  const agent = agentsData.find(a => a.id === output.agentId);
   const run = historyData.find(r => r.id === output.runId);
+  /* run 스냅샷 우선 조회 — 실행 당시 직급이 정확히 표시됨 */
+  const agentSnapshot = run?.agentsSnapshot?.find(a => a.id === output.agentId);
+  const agent = agentSnapshot || agentsData.find(a => a.id === output.agentId);
   if (!agent || !run) return;
 
   const createdAt = formatDate(output.createdAt);

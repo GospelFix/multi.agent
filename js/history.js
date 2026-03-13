@@ -74,7 +74,7 @@ const buildHistoryCard = (run) => {
       <div class="result-row">
         <div class="result-row-icon" style="${iconColor}">${agent.icon}</div>
         <div class="result-row-info">
-          <div class="result-row-name" style="color:var(${agent.accentVar})">${agent.name}</div>
+          <div class="result-row-name" style="color:var(${agent.accentVar})">${agent.name} <span style="color:var(--text-dim);font-weight:400">${agent.rank}</span></div>
           <div class="result-row-file">→ 📄 ${agent.outputFile}</div>
         </div>
         <div class="result-row-stats">

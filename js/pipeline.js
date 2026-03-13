@@ -235,11 +235,21 @@ const createPendingRunTab = (label) => {
     ? `${label} (${historyData.length + 1}차)`
     : `${historyData.length + 1}차 실행`;
 
+  /* 현재 Store 오버라이드를 스냅샷에 반영 — 각 실행의 직급이 영구 보존됨 */
+  const currentState = Store.get();
+  const snapshotAgents = agentsData.map(agent => {
+    const override = currentState.agentOverrides?.[agent.id] || {};
+    if (!override.rank) return agent;
+    const rankData = RANK_MAP[override.rank];
+    if (!rankData) return agent;
+    return { ...agent, rank: rankData.label, rankIcon: rankData.icon };
+  });
+
   const newRun = {
     id:             `run-${Date.now()}`,
     label:          runLabel,
     status:         'pending',
-    agentsSnapshot: JSON.parse(JSON.stringify(agentsData)), // 탭 전환 시 복원용
+    agentsSnapshot: JSON.parse(JSON.stringify(snapshotAgents)), // 오버라이드 반영된 스냅샷
     createdAt:      new Date().toISOString(),
     completedAt:    null,
     totalTokens:    0,
@@ -342,9 +352,10 @@ const renderResultList = () => {
         ? `<span style="color:var(--accent-pipe)">...</span>`
         : '—';
 
-    /* 직급 라벨 */
-    const state = Store.get();
-    const rankLabel = getAgentRankLabel(agent, state);
+    /* 직급 라벨 — 대기 중: 현재 Store 오버라이드(최신 설정), 실행/완료: 스냅샷(당시 직급 보존) */
+    const rankLabel = currentRun.status === 'pending'
+      ? getAgentRankLabel(agent, Store.get())
+      : agent.rank;
 
     return `
       <div class="rr-card ${result.status}" data-output-id="${result.outputId}" data-agent-id="${result.agentId}"
