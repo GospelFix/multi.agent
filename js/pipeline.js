@@ -928,6 +928,16 @@ const simulateRun = async (startAgentId) => {
   const runBtn = document.getElementById('run-btn-header');
   if (runBtn) { runBtn.disabled = true; runBtn.textContent = '⏳ 실행 중...'; }
 
+  /* 실행 시점의 최신 오버라이드(직급·모델 등)를 agentsData에 반영 — 재방문 후 변경된 설정 동기화 */
+  const runOverrides = Store.get().agentOverrides || {};
+  agentsData = agentsData.map(agent => {
+    const ov = runOverrides[agent.id] || {};
+    if (!ov.rank) return agent;
+    const rd = RANK_MAP[ov.rank];
+    if (!rd) return agent;
+    return { ...agent, rank: rd.label, rankIcon: rd.icon };
+  });
+
   const startIdx = startAgentId ? agentsData.findIndex(a => a.id === startAgentId) : 0;
 
   const newRun = {
