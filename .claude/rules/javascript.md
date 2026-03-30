@@ -13,12 +13,107 @@ updated: 2026-03-30
 
 ## 문법 규칙
 
-- 따옴표: **작은따옴표(`'`)** (HTML 속성 제외)
-- 세미콜론: **필수**
-- 변수: **`const` → `let` 우선**, `var` 절대 금지
-- 비교: **`===` / `!==`** (`==` / `!=` 금지)
-- 함수: **화살표 함수** 우선 (`this` 바인딩 필요 시 제외)
-- 비동기: **`async/await`** (`.then().catch()` 체인 지양)
+### 따옴표
+
+- **작은따옴표(`'`)** 사용 (쌍따옴표 금지, HTML 속성 제외)
+
+```javascript
+// ✅ Good
+const name = 'John';
+const message = 'Hello, world!';
+
+// ❌ Bad
+const name = "John";
+const message = 'Hello, "world!"';  // 따옴표 혼용
+```
+
+### 세미콜론
+
+- **필수 사용** — 모든 문장 끝에 세미콜론 추가
+
+```javascript
+// ✅ Good
+const name = 'John';
+const greet = () => {
+  console.log('Hello');
+};
+
+// ❌ Bad
+const name = 'John'        // 세미콜론 없음
+const greet = () => {
+  console.log('Hello')     // 세미콜론 없음
+}
+```
+
+### 변수 선언
+
+- **`const` → `let` 우선**, `var` 절대 금지 (블록 스코프 문제)
+
+```javascript
+// ✅ Good
+const MAX_ITEMS = 10;
+let currentIndex = 0;
+
+// ❌ Bad
+var MAX_ITEMS = 10;       // var 사용
+let MAX_ITEMS = 10;       // 상수인데 let
+const currentIndex = 0;   // 변경되는데 const
+```
+
+### 화살표 함수
+
+- **화살표 함수** 우선 (`this` 바인딩 필요 시 제외)
+
+```javascript
+// ✅ Good
+const square = (x) => x * x;
+const add = (a, b) => a + b;
+const greet = (name) => {
+  console.log(`Hello, ${name}`);
+};
+
+// ❌ Bad
+const square = function(x) { return x * x; };
+const add = function(a, b) { return a + b; };
+```
+
+### Async/Await
+
+- 비동기 처리는 **`async/await`** 사용 (`.then().catch()` 체인 지양)
+
+```javascript
+// ✅ Good
+const fetchUser = async (id) => {
+  try {
+    const response = await fetch(`/api/users/${id}`);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch user:', error);
+  }
+};
+
+// ❌ Bad
+const fetchUser = (id) => {
+  return fetch(`/api/users/${id}`)
+    .then(res => res.json())
+    .catch(err => console.error(err));
+};
+```
+
+### 비교 연산자
+
+- **`===` / `!==`** 사용 (`==` / `!=` 금지)
+
+```javascript
+// ✅ Good
+if (value === 'string') {}
+if (count !== 0) {}
+
+// ❌ Bad
+if (value == 'string') {}
+if (count != 0) {}
+```
 
 ## 코드 구조
 
@@ -52,9 +147,27 @@ app.init();
 - **불변성** 유지 (원본 데이터 변경 금지, 스프레드 연산자 활용)
 
 ```javascript
+// ✅ Good — 클로저로 스코프 격리
+const createCounter = () => {
+  let count = 0;
+
+  return {
+    increment: () => count += 1,
+    decrement: () => count -= 1,
+    getCount: () => count,
+  };
+};
+
 // ✅ 불변성 유지
 const addItem = (items, newItem) => [...items, newItem];
 const updateUser = (user, newData) => ({ ...user, ...newData });
+
+// ❌ Bad — 전역 변수 & 원본 데이터 변경
+let globalCount = 0;
+const addItem = (items, newItem) => {
+  items.push(newItem);  // 원본 변경
+  return items;
+};
 ```
 
 ## 주석

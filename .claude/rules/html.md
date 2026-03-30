@@ -29,6 +29,10 @@ updated: 2026-03-30
 <!-- ✅ Good -->
 <img src="logo.png" alt="회사 로고">
 <button aria-label="메뉴 열기">☰</button>
+
+<!-- ❌ Bad -->
+<img src="logo.png">
+<button>☰</button>
 ```
 
 ## 모바일
