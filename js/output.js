@@ -306,6 +306,15 @@ const downloadRunZip = async (runId, btnEl) => {
       folder.file(`${output.fileName}.md`, content);
     });
 
+    /* agents/ 서브폴더에 에이전트 정의 파일 추가 */
+    const agentsFolder = folder.folder('agents');
+    const uniqueAgentIds = [...new Set(runOutputs.map(o => o.agentId))];
+    uniqueAgentIds.forEach(agentId => {
+      const agentSnapshot = run.agentsSnapshot?.find(a => a.id === agentId);
+      const agent = agentSnapshot || agentsData.find(a => a.id === agentId);
+      if (agent) agentsFolder.file(`${agentId}.md`, buildAgentMd(agent));
+    });
+
     /* SKILL.md 및 LICENSE.txt 생성 후 최상위 폴더에 포함 */
     folder.file('SKILL.md', buildSkillMd(run, runOutputs));
     folder.file('LICENSE.txt', LICENSE_CONTENT);
@@ -344,42 +353,57 @@ const buildFrontmatter = (output, agent) => {
 
 /** ZIP에 포함될 SKILL.md 인덱스 파일 생성 */
 const buildSkillMd = (run, runOutputs) => {
-  const skillEntries = runOutputs.map(output => {
-    const agent = agentsData.find(a => a.id === output.agentId);
-    return [
-      `### ${output.fileName}`,
-      '',
-      '```yaml',
-      `name: ${output.fileName}`,
-      `label: ${output.label}`,
-      `agent: ${output.agentId}`,
-      `description: ${agent ? agent.desc : output.label}`,
-      `model: ${agent ? agent.model : ''}`,
-      `file: ${output.fileName}.md`,
-      '```',
-    ].join('\n');
-  }).join('\n\n');
-
-  /* run.id = 'run-001' 또는 'run-1741510000000' → skill- 접두사로 변환 */
   const pkgName = run.id.replace(/^run-/, 'skill-');
   const today = new Date().toISOString().split('T')[0];
+
+  /* 실행 순서대로 에이전트 참조 목록 생성 */
+  const agentRefs = runOutputs.map(output => `@agents/${output.agentId}.md`).join('\n');
+
+  /* 실행 순서 설명 */
+  const stepEntries = runOutputs.map((output, i) => {
+    const agent = agentsData.find(a => a.id === output.agentId);
+    return `${i + 1}. **${output.agentId}** → \`${output.fileName}.md\` (${agent ? agent.desc : ''})`;
+  }).join('\n');
 
   return [
     '---',
     `name: ${pkgName}`,
-    `description: ${run.label} 파이프라인 실행 결과물 패키지`,
+    `description: ${run.label} 파이프라인 재실행 스킬 패키지`,
     `generated: ${today}`,
     '---',
     '',
-    `# SKILL.md — ${run.label}`,
+    `# ${run.label}`,
     '',
-    '> 이 파일은 자동 생성된 스킬 인덱스입니다.',
+    '> 이 폴더를 `.claude/skills/`에 압축 해제하면 파이프라인을 재실행할 수 있습니다.',
     '',
+    '## 에이전트',
+    '',
+    agentRefs,
+    '',
+    '## 실행 순서',
+    '',
+    stepEntries,
+  ].join('\n');
+};
+
+/** agents/ 폴더용 에이전트 정의 파일 생성 */
+const buildAgentMd = (agent) => {
+  return [
+    '---',
+    `name: ${agent.id}`,
+    `label: ${agent.name}`,
+    `model: ${agent.model}`,
+    `rank: ${agent.rank}`,
+    `description: ${agent.desc}`,
     '---',
     '',
-    '## Skills',
+    `# ${agent.icon} ${agent.name} (${agent.rank})`,
     '',
-    skillEntries,
+    `> ${agent.desc}`,
+    '',
+    '## System Prompt',
+    '',
+    agent.systemPrompt || '',
   ].join('\n');
 };
 
